@@ -11,7 +11,7 @@ import String;
 
 public void AnalyzeLines()
 {
-	loc fileName = |project://Jabberpoint|;
+	loc fileName = |project://smallsql|;
 	
 	CountLines(fileName);
 
