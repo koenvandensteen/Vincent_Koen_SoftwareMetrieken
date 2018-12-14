@@ -1,4 +1,6 @@
-module CodeLines
+module Metrics::CodeLines
+
+import HelperFunctions;
 
 import IO;
 import util::Resources;
@@ -9,15 +11,13 @@ import Relation;
 import Set;
 import String;
 
+import lang::java::jdt::m3::Core;
+
 public void AnalyzeLines()
 {
 	loc fileName = |project://smallsql|;
-	
 	CountLines(fileName);
-
-	
 }
-
 
 public void CountLines(loc fileName)
 {
@@ -46,7 +46,7 @@ public void CountLines(loc fileName)
 	
 	for(fileLocation <- toList(FileSet))
 	{
-		totalCommentLines += CommentCount(fileLocation);
+		totalCommentLines += LineCountNoComment(fileLocation);
 	}
 	
 	println("***total ammount of code without comment lines");
@@ -55,27 +55,14 @@ public void CountLines(loc fileName)
 	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines-totalCommentLines)>");	
 }
 
-public int CommentCount(loc fileName)
+public int LineCountNoComment(loc fileName)
 {
 	str textToFilter = readFile(fileName);
 
-	//println("*****Unfiltered text <fileName> linesize: <size(readFileLines(fileName))>******");
-	
-	//we first filter on block comments, then we check on single line comments and then on empty lines.
-	list[str] filtered = [t | /<t:(\/\*(.|[\r\n])*?\*\/)|(\/\/.*)|(\n\s*\r)>/ := textToFilter];
-	int commentCounter = 0;
-	for(listItem <- filtered)
-	{
-		list[str] returnList = split("\r\n",listItem);
-		commentCounter+=size(returnList);
-	}
-	
-	//println("*****ammount of comment lines in: <fileName> : <commentCounter>******");
-	//println("*****Actual code lines in <fileName> = <size(readFileLines(fileName))-commentCounter>******");	
-
-	return commentCounter;
+	list[str] returnText = removeComments(textToFilter);
+	println(returnText);
+	return size(returnText);
 }
-
 
 public int GetComplexityRating(int totalLinesOfCode)
 {
