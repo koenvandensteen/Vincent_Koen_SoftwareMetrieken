@@ -17,10 +17,7 @@ import HelperFunctions;
 public void AnalyzeMethods()
 {
 	loc project = |project://smallsql|;	
-	evaluateMethods(project);	
-
-	println("todo general: classificatie van metrieken (zie Koen)");
-	
+	evaluateMethods(project);		
 }
 
 // based on sample from YouLearn (first few lines only)
@@ -34,21 +31,68 @@ public void evaluateMethods(loc project)
 	// get risk
 	map [loc, int] risk = (a : getRisk(complexity[a]) | a <- domain(complexity));
 	// get weighted complexity
-	//(a:size(removeCommentFromFile(a))| a <- range(javaMethods));
-	int linesOfCode = sum([ size(removeCommentFromFile(a)) | a <- domain(complexity)]);
-	println(linesOfCode);
+	// first get the line count for each method (excluding comments)
+	map [loc, int] linesOfCode = (a : size(removeCommentFromFile(a)) | a <- domain(complexity));
+	// then get the total line count
+	int totalLines = sum([ linesOfCode[a] | a <- domain(linesOfCode)]);
+	// then get one map per risk level with the lines of code of each method
+	map [loc, real] lowRisk = (a:toReal(linesOfCode[a]) | a <- domain(risk), risk[a] == 2);
+	map [loc, real] moderateRisk = (a:toReal(linesOfCode[a]) | a <- domain(risk), risk[a] == 1);
+	map [loc, real] highRisk = (a:toReal(linesOfCode[a])  | a <- domain(risk), risk[a] == 0);
+	map [loc, real] extremeRisk = (a:toReal(linesOfCode[a])  | a <- domain(risk), risk[a] == -1);
+	// after that, get the relative percentage of these risk categories
+	real factionLow = sum([lowRisk[a] | a <- domain(lowRisk)])/totalLines;
+	real factionModerate = sum([moderateRisk[a] | a <- domain(moderateRisk)])/totalLines;
+	real factionHigh = sum([highRisk[a]  | a <- domain(highRisk)])/totalLines;
+	real factionExtreme = sum([extremeRisk[a]  | a <- domain(extremeRisk)])/totalLines;
+	
+	println("Rounded percentage of the code per risk level:");
+	println("-- Low: <toInt(factionLow*100)>%");
+	println("-- Moderate: <toInt(factionModerate*100)>%");
+	println("-- High: <toInt(factionHigh*100)>%");
+	println("-- Extreme: <toInt(factionExtreme*100)>%");
+	println("");	
+	println("The overal risk level is: <getTotalRisk(factionModerate, factionHigh, factionExtreme)>.");
+	
 	//map [loc, real] weightedComplexity = ( a: toReal(complexity[a])/size(removeCommentFromFile(a))| a <- domain(complexity));
 }
 
-public int getRisk(int complexity){
-	if(complexity < 11)
+public int getTotalRisk(real mid, real high, real extreme){
+	if (mid <= 0.25 && high == 0 && extreme == 0){
 		return 2;
-	else if(complexity < 21)
+	}
+	if (mid <= 0.3 && high <= 0.05 && extreme == 0){
 		return 1;
-	else if(complexity < 51)
+	}
+	if (mid <= 0.4 && high <= 0.1 && extreme == 0){
 		return 0;
-	else
+	}
+	if (mid <= 0.5 && high <= 0.15 && extreme <= 0.05){
 		return -1;
+	}
+	else{
+		return -2;
+	}
+}
+
+
+public int getRisk(int complexity){
+	if(complexity < 11) {
+		// low risk
+		return 2;
+	}
+	else if(complexity < 21){
+		// moderate risk
+		return 1;
+	}
+	else if(complexity < 51){
+		// high risk
+		return 0;
+	}
+	else {
+		// very high risk
+		return -1;
+	}
 }
 
 
@@ -146,7 +190,8 @@ public map [loc, int] getCyclicComplexityMethod(Statement s){
 		}
 		
 	}
-	println("Method <s.src> has complexity <complexity>");
+	//debug
+	//println("Method <s.src> has complexity <complexity>");
 
 	return (s.src:complexity);
 }
