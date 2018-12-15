@@ -7,85 +7,139 @@ import List;
 import Map;
 import Relation;
 import Set;
+import String;
 import util::Resources;
 import lang::java::jdt::m3::Core;
+
+import analysis::statistics::Descriptive;
+
+import HelperFunctions;
 
 public void AnalyzeMethods()
 {
 	loc fileName = |project://smallsql|;
-	
-	CountMethods(fileName);
-
-	
+	CountMethods(fileName);	
 }
 
 
 public void CountMethods(loc fileName)
-{
-	
-	
-	
+{	
 	M3 model = createM3FromEclipseProject(fileName);
 	
+	// get all methods
 	javaMethods = {<a, b> | <a, b> <- model.containment, a.scheme=="java+class", b.scheme == "java+method"};
 	
-	methodCount = 0;
-	lineCount = 0;
-	maxLines = 0;
-	maxLineMethod = "";
+	// results
+	int totalClasses = 0;
+	int totalMethods = 0;
+	int largestMethodSize = 0;
+	//int smallMethodCount = 0;
+	int totalMethodSize = 0;
+	str largestMethod = "";
+	//str largestMethodClass = "";
+	real medianLines = 0.0;
+	int weightedAverage = 0;
+	real weightedMedian = 0.0;
 	
-	// loop over all classes
-	for(i <- domain(javaMethods)){
-		// loop over all methods of class i
-		methodCount = methodCount + 1;
-		for(j <- javaMethods[i]){
-			lines = size(readFileLines(j));
-			lineCount = lineCount + lines;
-			println("Methode <j> uit klasse <i> heeft <lines> regels code");
-			//determine largest method
-			if(lines > maxLines){
-				maxLines = lines;
-				maxLineMethod = j;
-			}
-		}
-	}
+	// intermediate vars
+	//int localLines = 0;
+	list [int] weightedLines = [];
+
+	// get all methods of the program
+	map[loc, int] methodCountPerClass = (a:size(javaMethods[a])| a <- domain(javaMethods));
+	// get method size
+	map[loc, int] methodSizes = (a:size(removeCommentFromFile(a))| a <- range(javaMethods));
+	// calculate the amount of classes in the project
+	totalClasses = size(domain(methodCountPerClass));
+	// calculate the amount of methods in said classes
+	totalMethods = sum([ size(javaMethods[a]) | a <- methodCountPerClass]);
+	// find the combined method size
+	totalMethodSize = sum([ methodSizes[a] | a <- domain(methodSizes)]);
+	// find the largest method
+	largestMethodSize = max(domain(invert(methodSizes)));
+	// there may be multiple methods that share the honor to be the largest of the programm, we select one at random
+	largestMethod = (getOneFrom((invert(methodSizes)[largestMethodSize]))).uri;	
+	//largestMethod = (invert(methodSizes)[largestMethodSize]).uri;
+	// get the median
+	medianLines = median([methodSizes[a] | a <- domain(methodSizes)]);		
+	//we will also make calculations with excluded short methods from this metric as these give a skewed image
+	// filter out any method with less than 5 lines of code
+	weightedLines = [ methodSizes[a] | a <- domain(methodSizes), methodSizes[a] > 4];
+	// average
+	weightedAverage = sum(weightedLines)/size(weightedLines);
+	// median
+	weightedMedian = median(weightedLines);	
 	
-	println("Er zijn <methodCount> methoden met in totaal <lineCount> regels code. Oftewel, het gemiddelde is <lineCount/methodCount> regels per methode");
-	//println("Er zijn XXX getters en setters?");
-	println("De grootste methode is <maxLineMethod> met <maxLines> regels code");
+	// alternative: for-loop 1
+	//for(i <- methodCountPerClass){
+	//	totalClasses += 1;		
+	//	totalMethods += size(javaMethods[i]);		
+	//}
+	// alternative: for-loop 2
+	//	for(j <- domain(methodSizes)){
+	//		localLines = methodSizes[j];
+	//		totalMethodSize += localLines;	
+	//		// track largest method
+	//		if(localLines>largestMethodSize){
+	//			largestMethodSize = localLines;
+	//			largestMethod = j.uri;
+	//			//largestMethod = getMethodFromPath(j.uri);
+	//			//largestMethodClass = getClassFromPath(j.uri);
+	//		}
+	//		// track small methods
+	//		if(localLines < 5){
+	//			smallMethodCount += 1;
+	//		}
+	//		//debug
+	//		//println("Method <j> has <methodSizes[j]> lines of code, the total method size count is now <totalMethodSize> lines of code.");	
+	//	}	
+
+	println("There are <totalClasses> classes with <totalMethods> methods in  this program. This gives a total of <totalMethodSize> lines of code (LOC) excluding comments & whitelines.");
+	println("This means the average loc per method equals <totalMethodSize/totalMethods> and the median is <medianLines> loc.");
+	println("The largest method is <getMethodFromPath(largestMethod)> of the class <getClassFromPath(largestMethod)> with <largestMethodSize> loc.");
+	println("There are <totalMethods - size(weightedLines)> small methods with fewer than 5 loc, these are often getters or setters.");
+	println("If we exclude these smaller methods because of their huge impact on this metric we see the new average is <weightedAverage> loc per method and the median is <weightedMedian> loc per method");
+	println("The complexity rating of the program is then: XXXX_TO_BE_DONE_XXXX.");
+	// use getComplexityRating(int weightedLineCount)
 	
 	println("");
 	println("Volgende stappen: ");
 	println("1 - goede methode om een uitgemiddeld resultaat uit te zoeken, e.g. getters en setters van 1 regel code hebben te grote impact. Statistisch, mediaan,...?");
 	println("2 - classificeren (zie hulpmethode onderaan)");
-	println("3 - negeren commentaren en witregels");
-	
-	//code below counts methods per class
-//		M3 model = createM3FromEclipseProject(fileName);
-		
-//		javaMethods = {<a, b> | <a, b> <- model.containment, a.scheme=="java+class", b.scheme == "java+method"};
-//		countMethods = {<a, size(javaMethods[a])> | a <- domain(javaMethods) };
-//		averageLines = 0;
-//		classCount = 0;
-//		for(<_, n> <- countMethods){for(<c, m> <- sort(countMethods, sortHelper)){
-//			classCount = methodCount + 1;	println("Class <c> has a count of <m> method(s)");
-//			averageLines = averageLines + n;	};	
-//			println("Claas <classCount> has <n> methods");	
-//		}
-//		println("The average count is <averageLines/methodCount>.");	
+
+}
+
+public list[str] removeCommentFromFile(loc fileName)
+{
+	str textToFilter = readFile(fileName);
+	list[str] returnText = removeComments(textToFilter);
+	return returnText;
 }
 
 
-public int GetComplexityRating(int totalLinesOfCode)
+public int getComplexityRating(int weightedLinesOfCode)
 {
-	if(totalLinesOfCode < 66000)
+	if(weightedLinesOfCode < 20)
 		return 2;
-	else if(totalLinesOfCode < 246000)
+	else if(weightedLinesOfCode < 30)
 		return 1;
-	else if(totalLinesOfCode < 665000)
+	else if(weightedLinesOfCode < 40)
 		return 0;
-	else if(totalLinesOfCode < 1310000)
+	else if(weightedLinesOfCode < 50)
 		return -1;
 	else
 		return -2;
+}
+
+public str getMethodFromPath(str s){
+	int i = findLast(s, "/");
+	return substring(s, i + 1);
+}
+
+public str getClassFromPath(str s){
+	str help = "";
+	int i = findLast(s, "/");
+	help = substring(s, 1, i);
+	i = findLast(help, "/");
+	return substring(help, i + 1);
 }
