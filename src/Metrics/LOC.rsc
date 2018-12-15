@@ -1,4 +1,4 @@
-module Metrics::CodeLines
+module Metrics::LOC
 
 import HelperFunctions;
 
@@ -15,7 +15,7 @@ import lang::java::jdt::m3::Core;
 
 public void AnalyzeLines()
 {
-	loc fileName = |project://smallsql|;
+	loc fileName = |project://hsqldb|;
 	CountLines(fileName);
 }
 
@@ -24,8 +24,6 @@ public void CountLines(loc fileName)
 	Resource project = getProject(fileName);
 	
 	set[loc] FileSet = {s | /file(s) <- project ,s.extension == "java"};
-	println("There are <size(FileSet)> ammount of java files in the code");
-	
 	
 	int totalLines = 0;
 		
@@ -42,17 +40,24 @@ public void CountLines(loc fileName)
 	println("which averages to <totalLines/size(FileSet)> lines of code per clas");
 	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines)>");
 	
-    int totalCommentLines = 0;
+	int filteredLines = GetTotalFilteredLineCount(FileSet);
+	
+	println("***total ammount of code without comment lines");
+	println("the <fileName.uri> has <totalLines-filteredLines> lines of comments");
+	println("this makes it into ammount of code without comments and whitelines <filteredLines>");
+	println("the current SIG complexity of the code is: <GetComplexityRating(filteredLines)>");	
+}
+
+public int GetTotalFilteredLineCount(set[loc] fileList)
+{
+    int totalLOC = 0;
 	
 	for(fileLocation <- toList(FileSet))
 	{
 		totalCommentLines += LineCountNoComment(fileLocation);
 	}
 	
-	println("***total ammount of code without comment lines");
-	println("the <fileName.uri> has <totalCommentLines> lines of comments");
-	println("this makes it into ammount of code without comments and whitelines <totalCommentLines>");
-	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines-totalCommentLines)>");	
+	return totalLOC;
 }
 
 public int LineCountNoComment(loc fileName)
@@ -60,7 +65,6 @@ public int LineCountNoComment(loc fileName)
 	str textToFilter = readFile(fileName);
 
 	list[str] returnText = removeComments(textToFilter);
-	println(returnText);
 	return size(returnText);
 }
 
