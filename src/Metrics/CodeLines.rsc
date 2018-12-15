@@ -51,7 +51,7 @@ public void CountLines(loc fileName)
 	
 	println("***total ammount of code without comment lines");
 	println("the <fileName.uri> has <totalCommentLines> lines of comments");
-	println("this makes it into ammount of code without comments and whitelines <totalLines-totalCommentLines>");
+	println("this makes it into ammount of code without comments and whitelines <totalCommentLines>");
 	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines-totalCommentLines)>");	
 }
 
