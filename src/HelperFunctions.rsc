@@ -2,13 +2,11 @@ module HelperFunctions
 
 import String;
 
-
 public list[str] removeComments(str inputString)
 {	
 	str noComments = visit(inputString)
 	{
-		case /\/\*[\s\S]*?\*\// => "" //multi line comments
-		case /\/\/.*/ => "" //single linde comments
+		case /(\/\*[\s\S]*?\*\/)|(\/\/.*)/ => "" //multi line comments
 	};
 			
 	list[str] lines = split("\n", noComments);
