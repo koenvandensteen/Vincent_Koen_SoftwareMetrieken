@@ -12,6 +12,8 @@ import lang::java::jdt::m3::Core;
 import lang::java::m3::AST;
 import util::Math;
 
+
+import UnitSizeAlt;
 import HelperFunctions;
 
 public void AnalyzeMethods()
@@ -32,19 +34,20 @@ public void evaluateMethods(loc project)
 	map [loc, int] risk = (a : getRisk(complexity[a]) | a <- domain(complexity));
 	// get weighted complexity
 	// first get the line count for each method (excluding comments)
-	map [loc, int] linesOfCode = (a : size(removeCommentFromFile(a)) | a <- domain(complexity));
+	//map [loc, int] linesOfCode = (a : size(removeCommentFromFile(a)) | a <- domain(complexity));// <- in house
+	map [loc, int] linesOfCode = countMethods(project, false);// <- using UnitSizeAlt 
 	// then get the total line count
-	int totalLines = sum([ linesOfCode[a] | a <- domain(linesOfCode)]);
+	int totalLines = getRangeSum(linesOfCode);//sum([ linesOfCode[a] | a <- domain(linesOfCode)]);
 	// then get one map per risk level with the lines of code of each method
-	map [loc, real] lowRisk = (a:toReal(linesOfCode[a]) | a <- domain(risk), risk[a] == 2);
-	map [loc, real] moderateRisk = (a:toReal(linesOfCode[a]) | a <- domain(risk), risk[a] == 1);
-	map [loc, real] highRisk = (a:toReal(linesOfCode[a])  | a <- domain(risk), risk[a] == 0);
-	map [loc, real] extremeRisk = (a:toReal(linesOfCode[a])  | a <- domain(risk), risk[a] == -1);
+	map [loc, int] lowRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 2);
+	map [loc, int] moderateRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 1);
+	map [loc, int] highRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 0);
+	map [loc, int] extremeRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == -1);
 	// after that, get the relative percentage of these risk categories
-	real factionLow = sum([lowRisk[a] | a <- domain(lowRisk)])/totalLines;
-	real factionModerate = sum([moderateRisk[a] | a <- domain(moderateRisk)])/totalLines;
-	real factionHigh = sum([highRisk[a]  | a <- domain(highRisk)])/totalLines;
-	real factionExtreme = sum([extremeRisk[a]  | a <- domain(extremeRisk)])/totalLines;
+	real factionLow = toReal(getRangeSum(lowRisk))/totalLines;
+	real factionModerate = toReal(getRangeSum(moderateRisk))/totalLines; //sum([moderateRisk[a] | a <- domain(moderateRisk)])/totalLines;
+	real factionHigh = toReal(getRangeSum(highRisk))/totalLines;//sum([highRisk[a]  | a <- domain(highRisk)])/totalLines;
+	real factionExtreme = toReal(getRangeSum(extremeRisk))/totalLines;//sum([extremeRisk[a]  | a <- domain(extremeRisk)])/totalLines;
 	
 	println("Rounded percentage of the code per risk level:");
 	println("-- Low: <toInt(factionLow*100)>%");
@@ -53,59 +56,16 @@ public void evaluateMethods(loc project)
 	println("-- Extreme: <toInt(factionExtreme*100)>%");
 	println("");	
 	println("The overal risk level is: <getTotalRisk(factionModerate, factionHigh, factionExtreme)>.");
-	
-	//map [loc, real] weightedComplexity = ( a: toReal(complexity[a])/size(removeCommentFromFile(a))| a <- domain(complexity));
+
 }
-
-public int getTotalRisk(real mid, real high, real extreme){
-	if (mid <= 0.25 && high == 0 && extreme == 0){
-		return 2;
-	}
-	if (mid <= 0.3 && high <= 0.05 && extreme == 0){
-		return 1;
-	}
-	if (mid <= 0.4 && high <= 0.1 && extreme == 0){
-		return 0;
-	}
-	if (mid <= 0.5 && high <= 0.15 && extreme <= 0.05){
-		return -1;
-	}
-	else{
-		return -2;
-	}
-}
-
-
-public int getRisk(int complexity){
-	if(complexity < 11) {
-		// low risk
-		return 2;
-	}
-	else if(complexity < 21){
-		// moderate risk
-		return 1;
-	}
-	else if(complexity < 51){
-		// high risk
-		return 0;
-	}
-	else {
-		// very high risk
-		return -1;
-	}
-}
-
-
-   
+  
 // from YouLearn sample
-public set[loc] javaBestanden(loc project) {
-   Resource r = getProject(project);
-   return { a | /file(a) <- r, a.extension == "java" };
-}
+//public set[loc] javaBestanden(loc project) {
+//   Resource r = getProject(project);
+//   return { a | /file(a) <- r, a.extension == "java" };
+//}
 
-
-
-
+// 
 public map [loc, int] getCyclicComplexity(set[Declaration] decls)
 {
 	map[loc, int] cyclicComplexity = ();
@@ -116,17 +76,27 @@ public map [loc, int] getCyclicComplexity(set[Declaration] decls)
 			// methods are defined as either (tutor.rascal-mpl.org):
 			// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
    			// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
-			case \method(_, _, _, _,Statement s): {
-				cyclicComplexity += getCyclicComplexityMethod(s);
+   			// we only consider type a since type b all seem to be abstract methods that do not add complexity
+			case \method(_, _, _, _,Statement impl): {
+				cyclicComplexity += getCyclicComplexityMethod(impl);
 			}
+			// we also consider the constructors as these may contain elements that affect the complexity
+			case \constructor(_, _, _, Statement impl): {
+				cyclicComplexity += getCyclicComplexityMethod(impl);
+			}
+			// finally there are initialisers
+			//case \initializer(Statement initializerBody): {
+			//	cyclicComplexity += getCyclicComplexityMethod(initializerBody);
+			//}
 		}
 	}
 	return cyclicComplexity;
 }
 
+// for each method check the complexity
 public map [loc, int] getCyclicComplexityMethod(Statement s){
 	
-	// base complexity = 1 for each method
+	// base complexity = 1 for each started method
 	int complexity = 1;
 	
 	// For each of the following in the Statment (method) add one for complexity
@@ -187,8 +157,7 @@ public map [loc, int] getCyclicComplexityMethod(Statement s){
 		// find conditionals using the [ expr ? a : b ] structure
 		case \conditional(_,_,_): {
 			complexity += 1;
-		}
-		
+		}		
 	}
 	//debug
 	//println("Method <s.src> has complexity <complexity>");
@@ -203,7 +172,41 @@ public list[str] removeCommentFromFile(loc fileName)
 	return returnText;
 }
 
-//public Declaration getAST(loc fileName, M3 model){
-//	return getMethodASTEclipse(fileName, model);
-//}
+// gets the complexity rating of a method in the range [2; -1]
+public int getRisk(int complexity){
+	if(complexity < 11) {
+		// low risk
+		return 2;
+	}
+	else if(complexity < 21){
+		// moderate risk
+		return 1;
+	}
+	else if(complexity < 51){
+		// high risk
+		return 0;
+	}
+	else {
+		// very high risk
+		return -1;
+	}
+}
 
+// gets the overal rating of the program in the range [2; -2]
+public int getTotalRisk(real mid, real high, real extreme){
+	if (mid <= 0.25 && high == 0 && extreme == 0){
+		return 2;
+	}
+	if (mid <= 0.3 && high <= 0.05 && extreme == 0){
+		return 1;
+	}
+	if (mid <= 0.4 && high <= 0.1 && extreme == 0){
+		return 0;
+	}
+	if (mid <= 0.5 && high <= 0.15 && extreme <= 0.05){
+		return -1;
+	}
+	else{
+		return -2;
+	}
+}

@@ -1,7 +1,6 @@
 module UnitSize
 
 import IO;
-import util::Resources;
 
 import List;
 import Map;
