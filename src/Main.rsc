@@ -4,23 +4,29 @@ import IO;
 import lang::java::jdt::m3::Core;
 import lang::java::m3::AST;
 
+import util::Math;
+import util::Resources;
+
 
 import Helpers::HelperFunctions;
 import Helpers::DataContainers;
 
 import Metrics::LOC;
+import Metrics::UnitComplexity;
 import Metrics::Duplication;
 
 import Agregation::SIGRating;
 
+import util::Math;
+
 public void AnalyzeAllProjects()
 {
-	println("******* START ANALYZE JABBERPOINT *********");
-	AnalyzeProject(|project://Jabberpoint|);
+	/*println("******* START ANALYZE JABBERPOINT *********");
+	AnalyzeProject(|project://Jabberpoint|);*/
 	println("******* START ANALYZE smallsql *********");
 	AnalyzeProject(|project://smallsql|);
-	println("******* START ANALYZE hsqldb *********");
-	AnalyzeProject(|project://hsqldb|);
+	/*println("******* START ANALYZE hsqldb *********");
+	AnalyzeProject(|project://hsqldb|);*/
 }
 
 public void AnalyzeProject(loc locProject)
@@ -41,6 +47,19 @@ public void AnalyzeProject(loc locProject)
 	int duplicatedLines = AnalyzeDuplication(filteredProject);
 	println("total lines duplicated: <duplicatedLines>");
 	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
-	println("total lines duplicated percentage: <duplicatePercentage>");
+	println("total lines duplicated percentage: <round(duplicatePercentage,0.01)>");
 	println("line count SIG-rating: <transFormSIG(GetDuplicationRating(duplicatePercentage))>");
+	
+	unitComplexityRating = AnalyzeUnitComplexity(locProject);
+	
+	println("Rounded percentage of the code per risk level:");
+	
+	for(key <- unitComplexityRating)
+	{
+		println("percentage <key> risk units: <round(unitComplexityRating[key]*100,0.01)>%");
+	}
+	
+	println("The overal risk level is: <transFormSIG(GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]))>.");
+
+
 }
