@@ -1,9 +1,24 @@
-module HelperFunctions
+module Helpers::::HelperFunctions
 
 import String;
 import Map;
 import List;
 import util::Resources;
+
+public lrel[loc location,list[str] stringList] FilterAllFiles(set[loc] fileList)
+{
+	lrel[loc,list[str]] returnList = [];
+	
+	for(fileName <- fileList)
+	{
+		str textToFilter = readFile(fileName);
+		list[str] filteredText = removeComments(textToFilter);
+		returnList += <fileName,filteredText>;
+	}
+	
+	return returnList;
+}
+
 
 public list[str] removeComments(str inputString)
 {	

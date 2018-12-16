@@ -1,4 +1,4 @@
-module UnitSizeAlt
+module Metrics::UnitSizeAlt
 
 import IO;
 import util::Resources;
@@ -14,7 +14,7 @@ import lang::java::m3::AST;
 import analysis::statistics::Descriptive;
 import util::Math;
 
-import HelperFunctions;
+import Helpers::HelperFunctions;
 
 
 public void analyzeMethodSize()

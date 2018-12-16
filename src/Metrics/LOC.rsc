@@ -10,13 +10,8 @@ import Relation;
 import Set;
 import String;
 
-import HelperFunctions;
-
-public void AnalyzeLines()
-{
-	loc fileName = |project://Jabberpoint|;
-	CountLines(fileName);
-}
+import Helpers::HelperFunctions;
+import Agregation::SIGRating;
 
 public void CountLines(loc fileName)
 {	
@@ -28,12 +23,12 @@ public void CountLines(loc fileName)
 	//we first count naively as if there are no white lines or comments
 	println("***total ammount of code with comment lines");
 	println("the <fileName.uri> has <totalLines> lines of code and <size(files(m3Project))> classes");
-	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines)>");
+	println("the current SIG complexity of the code is: <transFormSIG(GetSigRatingLOC(totalLines))>");
 		
 	println("***total ammount of code without comment lines");
 	println("the <fileName.uri> has <totalLines-filteredLines> lines of comments");
 	println("this makes it into ammount of code without comments and whitelines <filteredLines>");
-	println("the current SIG complexity of the code is: <GetComplexityRating(filteredLines)>");	
+	println("the current SIG complexity of the code is: <transFormSIG(GetSigRatingLOC(filteredLines))>");	
 }
 
 public int GetTotalFilteredLineCount(set[loc] fileList)
@@ -67,18 +62,4 @@ public int LineCountNoComment(loc fileName)
 
 	list[str] returnText = removeComments(textToFilter);
 	return size(returnText);
-}
-
-public int GetComplexityRating(int totalLinesOfCode)
-{
-	if(totalLinesOfCode < 66000)
-		return 2;
-	else if(totalLinesOfCode < 246000)
-		return 1;
-	else if(totalLinesOfCode < 665000)
-		return 0;
-	else if(totalLinesOfCode < 1310000)
-		return -1;
-	else
-		return -2;
 }

@@ -10,9 +10,9 @@ import Relation;
 import Set;
 import String;
 
-import HelperFunctions;
+import Helpers::HelperFunctions;
 import ListRelation;
-
+import Helpers::DataContainers;
 
 public void AnalyzeDuplication()
 {
@@ -22,44 +22,24 @@ public void AnalyzeDuplication()
 	
 	blockHashes = MapCodeOnDuplication(filteredProject);
 	
-	int countDuplicatblocks = 0;
+	int countDuplicateblocks = 0;
 	
 	for(codeMapKeys <- blockHashes)
 	{
-		//
-		if(size(blockHashes[codeMapKeys])>=2)
+		if(size(blockHashes[codeMapKeys])>1)
 		{
-			println("***** this block appeared <size(blockHashes[codeMapKeys])> times: <codeMapKeys>");
-			println("***** in <blockHashes[codeMapKeys]>");
+			countDuplicateblocks+=6;
 		}
 	}
-	
-
 }
 
-
-
-public lrel[loc location,list[str] stringList] FilterAllFiles(set[loc] fileList)
-{
-	lrel[loc,list[str]] returnList = [];
-	
-	for(fileName <- fileList)
-	{
-		str textToFilter = readFile(fileName);
-		list[str] filteredText = removeComments(textToFilter);
-		returnList += <fileName,filteredText>;
-	}
-	
-	return returnList;
-}
-
-public map[list[str],list[loc]] MapCodeOnDuplication(lrel[loc location,list[str] stringList] projectFiles)
+public map[list[str],list[loc]] MapCodeOnDuplication(projectList)
 {
 	int blockSize = 6;
 	blockList = [];
 	codeMap = ();
-	
-	for(file <- projectFiles)
+	int progressCounter = 0;
+	for(file <- projectList)
 	{				
 		for(i <- [1..(size(file.stringList)-blockSize)])
 		{
@@ -69,17 +49,11 @@ public map[list[str],list[loc]] MapCodeOnDuplication(lrel[loc location,list[str]
 			else
 				codeMap[fileLines]=[file.location];
 		}
+		progressCounter+=6;
+		println("printed file number <progressCounter> of <size(projectList)>");
 	}	
 	return codeMap;	
 }
-
-public str HashValue(list[str] stringList)
-{
-	
-	return "";
-}
-
-
 
 
 

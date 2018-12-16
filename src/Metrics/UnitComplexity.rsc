@@ -14,7 +14,7 @@ import util::Math;
 
 
 import UnitSizeAlt;
-import HelperFunctions;
+import Helpers::HelperFunctions;
 
 public void AnalyzeMethods()
 {

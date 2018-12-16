@@ -12,7 +12,7 @@ import lang::java::jdt::m3::Core;
 
 import analysis::statistics::Descriptive;
 
-import HelperFunctions;
+import Helpers::HelperFunctions;
 
 public void AnalyzeMethods()
 {
