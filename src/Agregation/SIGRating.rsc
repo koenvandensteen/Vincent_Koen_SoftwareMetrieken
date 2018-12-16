@@ -64,3 +64,22 @@ public int GetUnitComplexityRating(real mid, real high, real extreme){
 		return -2;
 	}
 }
+
+// gets the overal rating of the program in the range [2; -2]
+public int GetUnitSizeRating(real mid, real high, real extreme){
+	if (mid <= 0.25 && high == 0 && extreme == 0){
+		return 2;
+	}
+	if (mid <= 0.3 && high <= 0.05 && extreme == 0){
+		return 1;
+	}
+	if (mid <= 0.4 && high <= 0.1 && extreme == 0){
+		return 0;
+	}
+	if (mid <= 0.5 && high <= 0.15 && extreme <= 0.05){
+		return -1;
+	}
+	else{
+		return -2;
+	}
+}
