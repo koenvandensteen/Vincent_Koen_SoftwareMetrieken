@@ -1,9 +1,11 @@
-module Helpers::::HelperFunctions
+module Helpers::HelperFunctions
 
 import String;
 import Map;
 import List;
 import util::Resources;
+
+import IO;
 
 public lrel[loc location,list[str] stringList] FilterAllFiles(set[loc] fileList)
 {

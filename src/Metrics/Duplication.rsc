@@ -14,13 +14,9 @@ import Helpers::HelperFunctions;
 import ListRelation;
 import Helpers::DataContainers;
 
-public void AnalyzeDuplication()
-{
-	loc fileName = |project://hsqldb|;
-	M3 m3Project = createM3FromEclipseProject(fileName);
-	lrel[loc location,list[str] stringList] filteredProject = FilterAllFiles(files(m3Project));
-	
-	blockHashes = MapCodeOnDuplication(filteredProject);
+public int AnalyzeDuplication(projectList)
+{	
+	blockHashes = MapCodeOnDuplication(projectList);
 	
 	int countDuplicateblocks = 0;
 	
@@ -31,6 +27,8 @@ public void AnalyzeDuplication()
 			countDuplicateblocks+=6;
 		}
 	}
+	
+	return countDuplicateblocks;
 }
 
 public map[list[str],list[loc]] MapCodeOnDuplication(projectList)
@@ -38,7 +36,7 @@ public map[list[str],list[loc]] MapCodeOnDuplication(projectList)
 	int blockSize = 6;
 	blockList = [];
 	codeMap = ();
-	int progressCounter = 0;
+
 	for(file <- projectList)
 	{				
 		for(i <- [1..(size(file.stringList)-blockSize)])
@@ -49,9 +47,8 @@ public map[list[str],list[loc]] MapCodeOnDuplication(projectList)
 			else
 				codeMap[fileLines]=[file.location];
 		}
-		progressCounter+=6;
-		println("printed file number <progressCounter> of <size(projectList)>");
 	}	
+	
 	return codeMap;	
 }
 

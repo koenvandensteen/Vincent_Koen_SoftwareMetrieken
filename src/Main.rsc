@@ -6,12 +6,21 @@ import lang::java::m3::AST;
 
 
 import Helpers::HelperFunctions;
-import Metrics::LOC;
+import Helpers::DataContainers;
 
+import Metrics::LOC;
+import Metrics::Duplication;
+
+import Agregation::SIGRating;
 
 public void AnalyzeAllProjects()
 {
+	println("******* START ANALYZE JABBERPOINT *********");
 	AnalyzeProject(|project://Jabberpoint|);
+	println("******* START ANALYZE smallsql *********");
+	AnalyzeProject(|project://smallsql|);
+	println("******* START ANALYZE hsqldb *********");
+	AnalyzeProject(|project://hsqldb|);
 }
 
 public void AnalyzeProject(loc locProject)
@@ -19,9 +28,19 @@ public void AnalyzeProject(loc locProject)
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	
 	//regular file count
-	int totalLines = getTotalCountLineCount(files(m3Project));
+	allFiles = files(m3Project);
+	int totalLines = getTotalLOC(allFiles);
+	println("total lines unfiltered: <totalLines>");
+
+	//filtered line count
+	projectList filteredProject = FilterAllFiles(allFiles);		
+	int filteredLineCount = GetTotalFilteredLOC(filteredProject);
+	println("total lines filtered: <filteredLineCount>");
+	println("line count SIG-rating: <transFormSIG(GetSigRatingLOC(filteredLineCount))>");
 	
-	lrel[loc location,list[str] stringList] filteredProject = FilterAllFiles(files(m3Project));		
-	
-	int filteredLineCount = 
+	int duplicatedLines = AnalyzeDuplication(filteredProject);
+	println("total lines duplicated: <duplicatedLines>");
+	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
+	println("total lines duplicated percentage: <duplicatePercentage>");
+	println("line count SIG-rating: <transFormSIG(GetDuplicationRating(duplicatePercentage))>");
 }
