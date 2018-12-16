@@ -46,5 +46,9 @@ public set[loc] javaBestanden(loc project) {
 
 // sums up the range elements of a given map
 public int getRangeSum(map [loc, int] input){
+
+	if(size(input) == 0)
+		return 0;
+		
 	return sum([input[a] | a <- domain(input)]);
 }

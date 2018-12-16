@@ -21,11 +21,11 @@ import util::Math;
 
 public void AnalyzeAllProjects()
 {
-	/*println("******* START ANALYZE JABBERPOINT *********");
-	AnalyzeProject(|project://Jabberpoint|);*/
-	println("******* START ANALYZE smallsql *********");
+	println("******* START ANALYZE JABBERPOINT *********");
+	AnalyzeProject(|project://Jabberpoint|);
+	/*println("******* START ANALYZE smallsql *********");
 	AnalyzeProject(|project://smallsql|);
-	/*println("******* START ANALYZE hsqldb *********");
+	println("******* START ANALYZE hsqldb *********");
 	AnalyzeProject(|project://hsqldb|);*/
 }
 
