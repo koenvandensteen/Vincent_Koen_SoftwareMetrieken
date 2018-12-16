@@ -1,4 +1,4 @@
-module UnitComplexity
+module Metrics::UnitComplexity
 
 import IO;
 import util::Resources;

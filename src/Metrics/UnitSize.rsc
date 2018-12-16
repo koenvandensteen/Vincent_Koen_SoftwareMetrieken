@@ -1,4 +1,4 @@
-module UnitSize
+module Metrics::UnitSize
 
 import IO;
 

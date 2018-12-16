@@ -1,47 +1,35 @@
 module Metrics::LOC
 
-import HelperFunctions;
-
 import IO;
-import util::Resources;
 
+import lang::java::jdt::m3::Core;
+import lang::java::m3::AST;
 import List;
 import Map;
 import Relation;
 import Set;
 import String;
 
-import lang::java::jdt::m3::Core;
+import HelperFunctions;
 
 public void AnalyzeLines()
 {
-	loc fileName = |project://hsqldb|;
+	loc fileName = |project://Jabberpoint|;
 	CountLines(fileName);
 }
 
 public void CountLines(loc fileName)
-{
-	Resource project = getProject(fileName);
+{	
+	M3 m3Project = createM3FromEclipseProject(fileName);
 	
-	set[loc] FileSet = {s | /file(s) <- project ,s.extension == "java"};
-	
-	int totalLines = 0;
-		
-	map[loc,int] regelsPerBestand = (a:size(readFileLines(a))|a <-FileSet);
-	
-	for(<loc b, int c> <- toList(regelsPerBestand))
-	{
-		totalLines += c;
-	}
-	
+	int totalLines = getTotalCountLineCount(files(m3Project));
+	int filteredLines = GetTotalFilteredLineCount(files(m3Project));
+			
 	//we first count naively as if there are no white lines or comments
 	println("***total ammount of code with comment lines");
-	println("the <fileName.uri> has <totalLines> lines of code and <size(FileSet)> classes");
-	println("which averages to <totalLines/size(FileSet)> lines of code per clas");
+	println("the <fileName.uri> has <totalLines> lines of code and <size(files(m3Project))> classes");
 	println("the current SIG complexity of the code is: <GetComplexityRating(totalLines)>");
-	
-	int filteredLines = GetTotalFilteredLineCount(FileSet);
-	
+		
 	println("***total ammount of code without comment lines");
 	println("the <fileName.uri> has <totalLines-filteredLines> lines of comments");
 	println("this makes it into ammount of code without comments and whitelines <filteredLines>");
@@ -52,12 +40,25 @@ public int GetTotalFilteredLineCount(set[loc] fileList)
 {
     int totalLOC = 0;
 	
-	for(fileLocation <- toList(FileSet))
+	for(fileLocation <- toList(fileList))
 	{
-		totalCommentLines += LineCountNoComment(fileLocation);
+		totalLOC += LineCountNoComment(fileLocation);
 	}
 	
 	return totalLOC;
+}
+
+public int getTotalCountLineCount(set[loc] fileList)
+{
+	int totalLines = 0;
+	
+	for(fileLocation <- toList(fileList))
+	{
+		list[str] lines = readFileLines(fileLocation);	
+		totalLines += size(lines);
+	}
+	
+	return totalLines;
 }
 
 public int LineCountNoComment(loc fileName)
