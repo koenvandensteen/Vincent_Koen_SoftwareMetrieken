@@ -12,18 +12,13 @@ import lang::java::jdt::m3::Core;
 import lang::java::m3::AST;
 import util::Math;
 
-
-import UnitSizeAlt;
 import Helpers::HelperFunctions;
 
-public void AnalyzeMethods()
-{
-	loc project = |project://smallsql|;	
-	evaluateMethods(project);		
-}
+import Metrics::UnitSize;
+import Metrics::UnitSizeAlt;
 
 // based on sample from YouLearn (first few lines only)
-public void evaluateMethods(loc project)
+public map [str, real] AnalyzeUnitComplexity(loc project)
 {
 	// prepare AST
 	set[loc] files = javaBestanden(project);
@@ -48,15 +43,8 @@ public void evaluateMethods(loc project)
 	real factionModerate = toReal(getRangeSum(moderateRisk))/totalLines; //sum([moderateRisk[a] | a <- domain(moderateRisk)])/totalLines;
 	real factionHigh = toReal(getRangeSum(highRisk))/totalLines;//sum([highRisk[a]  | a <- domain(highRisk)])/totalLines;
 	real factionExtreme = toReal(getRangeSum(extremeRisk))/totalLines;//sum([extremeRisk[a]  | a <- domain(extremeRisk)])/totalLines;
-	
-	println("Rounded percentage of the code per risk level:");
-	println("-- Low: <toInt(factionLow*100)>%");
-	println("-- Moderate: <toInt(factionModerate*100)>%");
-	println("-- High: <toInt(factionHigh*100)>%");
-	println("-- Extreme: <toInt(factionExtreme*100)>%");
-	println("");	
-	println("The overal risk level is: <getTotalRisk(factionModerate, factionHigh, factionExtreme)>.");
-
+		
+	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
 }
   
 // from YouLearn sample
@@ -189,24 +177,5 @@ public int getRisk(int complexity){
 	else {
 		// very high risk
 		return -1;
-	}
-}
-
-// gets the overal rating of the program in the range [2; -2]
-public int getTotalRisk(real mid, real high, real extreme){
-	if (mid <= 0.25 && high == 0 && extreme == 0){
-		return 2;
-	}
-	if (mid <= 0.3 && high <= 0.05 && extreme == 0){
-		return 1;
-	}
-	if (mid <= 0.4 && high <= 0.1 && extreme == 0){
-		return 0;
-	}
-	if (mid <= 0.5 && high <= 0.15 && extreme <= 0.05){
-		return -1;
-	}
-	else{
-		return -2;
 	}
 }

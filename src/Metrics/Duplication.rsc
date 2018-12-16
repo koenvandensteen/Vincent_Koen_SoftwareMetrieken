@@ -39,7 +39,7 @@ public map[list[str],list[loc]] MapCodeOnDuplication(projectList)
 
 	for(file <- projectList)
 	{				
-		for(i <- [1..(size(file.stringList)-blockSize)])
+		for(i <- [0..(size(file.stringList)-blockSize)])
 		{
 			fileLines = file.stringList[i..i+blockSize];
 			if(fileLines in codeMap)
