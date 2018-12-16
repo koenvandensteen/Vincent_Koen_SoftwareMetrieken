@@ -24,7 +24,7 @@ public void analyzeMethodSize()
 }
 
 // based on sample from YouLearn (first few lines only)
-public map[str, real] countMethodsSIG(loc project)
+public map[str, real] AnalyzeUnitSize(loc project)
 {
 	// treshold for small methods that should be ignored
 	int treshold = 5;
@@ -33,23 +33,21 @@ public map[str, real] countMethodsSIG(loc project)
 	set[Declaration] decls = createAstsFromFiles(files, false);
 	map[loc, int] unitSizes = getUnitSizeMap(decls);
 	// get a risk factor
-	map [loc, int] risk = (a : getRisk(unitSizes[a], treshold) | a <- domain(unitSizes));
+	map [loc, int] risk = (a : getRisk(unitSizes[a]) | a <- domain(unitSizes));
 	// get a count of all evaluated units
 	int evaluatedUnits = getRangeSum(unitSizes);
 	// then get one map per risk level with the unit size of each method
-	map [loc, int] noRisk = (a:unitSizes[a] | a <- domain(risk), risk[a] == 2);
 	map [loc, int] lowRisk = (a:unitSizes[a] | a <- domain(risk), risk[a] == 1);
 	map [loc, int] moderateRisk = (a:unitSizes[a] | a <- domain(risk), risk[a] == 0);
 	map [loc, int] highRisk = (a:unitSizes[a] | a <- domain(risk), risk[a] == -1);
 	map [loc, int] extremeRisk = (a:unitSizes[a] | a <- domain(risk), risk[a] == -2);
 	// after that, get the relative percentage of these risk categories
-	real factionNo = toReal(getRangeSum(noRisk))/evaluatedUnits;
 	real factionLow = toReal(getRangeSum(lowRisk))/evaluatedUnits;
 	real factionModerate = toReal(getRangeSum(moderateRisk))/evaluatedUnits; 
 	real factionHigh = toReal(getRangeSum(highRisk))/evaluatedUnits;
 	real factionExtreme = toReal(getRangeSum(extremeRisk))/evaluatedUnits;
 
-	return ("factionNo":factionNo,"factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
+	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
 }
 
 // based on sample from YouLearn (first few lines only)
@@ -134,13 +132,11 @@ public list[str] removeCommentFromFile(loc fileName)
 
 public int getComplexityRating(int weightedLinesOfCode)
 {
-	if(weightedLinesOfCode < 20)
-		return 2;
-	else if(weightedLinesOfCode < 30)
+	if(weightedLinesOfCode < 15)
 		return 1;
-	else if(weightedLinesOfCode < 40)
+	else if(weightedLinesOfCode < 30)
 		return 0;
-	else if(weightedLinesOfCode < 50)
+	else if(weightedLinesOfCode < 60)
 		return -1;
 	else
 		return -2;
@@ -161,25 +157,19 @@ private str getClassFromPath(str s){
 
 
 // gets the complexity rating of a method in the range [2; -1]
-public int getRisk(int unitSize, int treshold){
+public int getRisk(int unitSize){
 	// if treshold is not smallest value, print a warning
-	if(treshold > 10){
-		println("treshold larger than value for small methods (10)!");
-	}
-	if(unitSize < treshold) {
+
+	if(unitSize < 15) {
 		// no risk, likely to be a simple getter/setter
-		return 2;
-	}
-	else if(unitSize < 11){
-		// low risk
 		return 1;
 	}
-	else if(unitSize < 21){
-		// moderate risk
+	else if(unitSize < 30){
+		// low risk
 		return 0;
 	}
-	else if(unitSize < 51){
-		// high risk
+	else if(unitSize < 60){
+		// moderate risk
 		return -1;
 	}
 	else {

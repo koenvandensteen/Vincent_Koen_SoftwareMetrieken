@@ -1,0 +1,24 @@
+**** analys started at: $2018-12-16T20:01:05.557+00:00$ 
+total lines unfiltered: 2336
+**** line count SIG-rating: ++
+percentage factionExtreme risk units: 0.00%
+percentage factionLow risk units: 95.92%
+percentage factionHigh risk units: 0.00%
+percentage factionModerate risk units: 4.08%
+**** unity complexity SIG-rating: ++
+**** duplication SIG-rating: ++
+percentage factionExtreme unit sizes: 9.08%
+percentage factionLow unit sizes: 68.57%
+percentage factionHigh unit sizes: 15.31%
+percentage factionModerate unit sizes: 7.04%
+**** unity size SIG-rating: ++
+**** analysability: ++
+**** changeability: ++
+**** stability: ++
+**** testability: ++
+|project://Jabberpoint| has been analyzed and receives an overal rating of: ++
+**** analys ended at: $2018-12-16T20:01:06.546+00:00$ and took 0 minutes 0 seconds 988 milliseconds 
+
+
+
+

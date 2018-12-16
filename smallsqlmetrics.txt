@@ -1,0 +1,24 @@
+**** analys started at: $2018-12-16T20:01:10.175+00:00$ 
+total lines unfiltered: 39497
+**** line count SIG-rating: ++
+percentage factionExtreme risk units: 5.89%
+percentage factionLow risk units: 72.28%
+percentage factionHigh risk units: 12.88%
+percentage factionModerate risk units: 8.96%
+**** unity complexity SIG-rating: --
+**** duplication SIG-rating: -
+percentage factionExtreme unit sizes: 16.06%
+percentage factionLow unit sizes: 45.43%
+percentage factionHigh unit sizes: 17.28%
+percentage factionModerate unit sizes: 21.22%
+**** unity size SIG-rating: --
+**** analysability: 0
+**** changeability: --
+**** stability: --
+**** testability: --
+|project://smallsql| has been analyzed and receives an overal rating of: -
+**** analys ended at: $2018-12-16T20:01:41.905+00:00$ and took 0 minutes 31 seconds 730 milliseconds 
+
+
+
+
