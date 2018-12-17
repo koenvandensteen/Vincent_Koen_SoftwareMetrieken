@@ -47,33 +47,32 @@ public void RunTestProgram(){
 
 public void AnalyzeProject(loc locProject, str projectName)
 {
-	startMoment = now();
-	
 	list[str] totalReport = [];
+	startMoment = now();	
+	totalReport+=PrintAndReturnString("**** analasys started at: <startMoment>");
+
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	
 	//prepare ast globally
 	set[loc] javaFiles = getFilesJava(locProject);
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false);
 
-	
-	totalReport+="**** analys started at: <startMoment> \n";
-	println(totalReport[size(totalReport)-1]);
-	
+
 	//regular file count
 	allFiles = files(m3Project);
 	int totalLines = getTotalLOC(allFiles);
-	totalReport+="total lines unfiltered: <totalLines>\n";
-	println(totalReport[size(totalReport)-1]);	
+	totalReport+=PrintAndReturnString("total lines unfiltered: <totalLines>");
+	
 	/*
 	//LOC Metric
 	*/
 	projectList filteredProject = FilterAllFiles(allFiles);		
 	int filteredLineCount = GetTotalFilteredLOC(filteredProject);
-	println("total lines filtered: <filteredLineCount>\n");
+	totalReport+=PrintAndReturnString("total lines filtered: <filteredLineCount>");
 	int volumeRating = GetSigRatingLOC(filteredLineCount);
-	totalReport+="**** line count SIG-rating: <transFormSIG(volumeRating)>\n";
-	println(totalReport[size(totalReport)-1]);	
+	totalReport+=PrintAndReturnString("**** line count SIG-rating: <transFormSIG(volumeRating)>");
+	println("\n");
+	
 	/*
 	//unitSizeRating Metric
 	*/
@@ -83,13 +82,14 @@ public void AnalyzeProject(loc locProject, str projectName)
 
 	for(key <- unitSizeRating)
 	{
-		totalReport+="percentage <key> unit sizes: <round(unitSizeRating[key]*100,0.01)>%\n";
-	println(totalReport[size(totalReport)-1]);
+		totalReport+=PrintAndReturnString("percentage <key> unit sizes: <round(unitSizeRating[key]*100,0.01)>%");
 	}
 	
 	int overalUnitSizeRating = GetUnitComplexityRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
-	totalReport+="**** unity size SIG-rating: <transFormSIG(overalUnitSizeRating)>\n";
-	println(totalReport[size(totalReport)-1]);
+	
+	totalReport+=PrintAndReturnString("**** unit size SIG-rating: <transFormSIG(overalUnitSizeRating)>");
+	println("\n");
+	
 	/*
 	//Unit Complexity Metric
 	*/
@@ -99,59 +99,81 @@ public void AnalyzeProject(loc locProject, str projectName)
 		
 	for(key <- unitComplexityRating)
 	{
-		totalReport+="percentage <key> risk units: <round(unitComplexityRating[key]*100,0.01)>%\n";
-			println(totalReport[size(totalReport)-1]);
+		totalReport+=PrintAndReturnString("percentage <key> risk units: <round(unitComplexityRating[key]*100,0.01)>%");
 	}
 	
-	int overalComplexityRating = GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]);
-	totalReport+="**** unity complexity SIG-rating: <transFormSIG(overalComplexityRating)>\n";
-	println(totalReport[size(totalReport)-1]);
+	int overalComplexityRating = GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]);	
+	totalReport+=PrintAndReturnString("**** unit complexity SIG-rating: <transFormSIG(overalComplexityRating)>");
+	println("\n");
+	
 	/*
 	//duplication Metric
 	*/
 	int duplicatedLines = AnalyzeDuplication(filteredProject);
-	println("total lines duplicated: <duplicatedLines>\n");
+	totalReport+=PrintAndReturnString("total lines duplicated: <duplicatedLines>");
 	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
-	println("total lines duplicated percentage: <round(duplicatePercentage,0.01)>%\n");
+	totalReport+=PrintAndReturnString("total lines duplicated percentage: <round(duplicatePercentage,0.01)>%");
 	int duplicationRating = GetDuplicationRating(duplicatePercentage);
-	totalReport+="**** duplication SIG-rating: <transFormSIG(duplicationRating)>\n";
-	println(totalReport[size(totalReport)-1]);
-
+	totalReport+=PrintAndReturnString("**** duplication SIG-rating: <transFormSIG(duplicationRating)>");
+	println("\n");
+	
 	/*
 	//unit Test Rating metric
-	*/
-	
-	//TODO MAKE THIS HAPEN
+	*/	
 	tuple[real v1, real v2] unitTestCoverage = AnalyzeUnitTest(ASTDeclarations);
-	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(getTestRating(unitTestCoverage.v1))>\n");
-	println("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(getTestRating(unitTestCoverage.v2))>\n");
+	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(getTestRating(unitTestCoverage.v1))>");
+	totalReport+=PrintAndReturnString("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(getTestRating(unitTestCoverage.v2))>");
 	// selected the more representative assert count method for further metrics
 	int unitTestingRating = getTestRating(unitTestCoverage.v2);
-	totalReport+="**** test coverage SIG-rating: <transFormSIG(unitTestingRating)>\n";
-	println(totalReport[size(totalReport)-1]);
+	totalReport+=PrintAndReturnString("**** test coverage SIG-rating: <transFormSIG(unitTestingRating)>");
+	println("\n");
 	
-	//
-		
+	/*
+	//Overal agregation of data
+	*/			
 	maintabilityRating = GetMaintabilityRating(volumeRating, overalComplexityRating, duplicationRating, overalUnitSizeRating, unitTestingRating);
-	totalReport+="**** analysability: <transFormSIG(maintabilityRating.analysability)>\n";
-	println(totalReport[size(totalReport)-1]);
-	totalReport+="**** changeability: <transFormSIG(maintabilityRating.changeability)>\n";
-	println(totalReport[size(totalReport)-1]);
-	totalReport+="**** stability: <transFormSIG(maintabilityRating.changeability)>\n";
-	println(totalReport[size(totalReport)-1]);
-	totalReport+="**** testability: <transFormSIG(maintabilityRating.changeability)>\n";
-	println(totalReport[size(totalReport)-1]);
+	totalReport+=PrintAndReturnString("**** analysability: <transFormSIG(maintabilityRating.analysability)>");
+	totalReport+=PrintAndReturnString("**** changeability: <transFormSIG(maintabilityRating.changeability)>");
+	totalReport+=PrintAndReturnString("**** stability: <transFormSIG(maintabilityRating.stability)>");
+	totalReport+=PrintAndReturnString("**** testability: <transFormSIG(maintabilityRating.testability)>");
+	totalReport+=PrintAndReturnString("<locProject> has been analyzed and receives an overal rating of: <transFormSIG(GetTotalSIGRating(maintabilityRating))>");
 	
-	totalReport+="<locProject> has been analyzed and receives an overal rating of: <transFormSIG(GetTotalSIGRating(maintabilityRating))>\n";
-	println(totalReport[size(totalReport)-1]);
+	totalReport+=PrintAndReturnString("\n");
+	totalReport+=PrintAndReturnString("\n");
+	
+	totalReport+=PrintAndReturnString("ISO 9126 mainainability chart");
+	totalReport+=PrintAndReturnString("______________________________");
+	totalReport+=PrintAndReturnString("     | V | U | D | U | U || T ");	
+	totalReport+=PrintAndReturnString("     | O | N | U | N | N || O ");	
+	totalReport+=PrintAndReturnString("     | L | T | P | T | T || T ");
+	totalReport+=PrintAndReturnString("     | U | C | L | S | T || A ");
+	totalReport+=PrintAndReturnString("     | M | M | I | I | S || L ");
+	totalReport+=PrintAndReturnString("     | E | X | C | Z | T || * ");
+	totalReport+=PrintAndReturnString("-----|---|---|---|---|---||---");
+	totalReport+=PrintAndReturnString("ANALY|<transFormSIG(volumeRating)> |   |<transFormSIG(duplicationRating)> |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.analysability)>");
+	totalReport+=PrintAndReturnString("CHANG|   |<transFormSIG(overalComplexityRating)> |<transFormSIG(duplicationRating)> |   |   ||<transFormSIG(maintabilityRating.changeability)>");
+	totalReport+=PrintAndReturnString("STABI|   |   |   |   |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.stability)>");
+	totalReport+=PrintAndReturnString("TESTA|   |<transFormSIG(overalComplexityRating)> |   |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.testability)>");
+	totalReport+=PrintAndReturnString("-----|---|---|---|---|---||---");
+	totalReport+=PrintAndReturnString("TOTAL|---|---|---|---|---||<transFormSIG(GetTotalSIGRating(maintabilityRating))> ");
+	totalReport+=PrintAndReturnString("\n");
+	totalReport+=PrintAndReturnString("\n");
+	
+	
 	endMoment = now();
 	executionDuration = createDuration(startMoment,endMoment);
-	totalReport+="**** analys ended at: <now()> and took <executionDuration.minutes> minutes <executionDuration.seconds> seconds <executionDuration.milliseconds> milliseconds \n\n\n\n\n";
-	println(totalReport[size(totalReport)-1]);
+	totalReport+=PrintAndReturnString("**** analys ended at: <now()> and took <executionDuration.minutes> minutes <executionDuration.seconds> seconds <executionDuration.milliseconds> milliseconds \n\n\n\n\n");
 		
 	loc writeDestination = |project://SoftwareEvolution/|;
 	writeDestination.uri += "/<projectName>metrics.txt";
 	println(writeDestination.uri);
 	writeFile(writeDestination, totalReport);
-
 }
+
+
+private str PrintAndReturnString(str message)
+{
+	println(message);
+	return message+"\n";
+}
+

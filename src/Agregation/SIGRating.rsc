@@ -138,7 +138,7 @@ public maintainAbilityRating GetMaintabilityRating(int volumeRating, int unitCom
     int analysability = round((volumeRating + duplicationRating + unitSizeRating + unitTestingRating)/4.0);
     int changeability = round((unitComplexityRating + duplicationRating)/2.0);
     int stability = unitTestingRating;
-    int testability = round((unitComplexityRating+unitSizeRating+unitTestingRating)/2.0);
+    int testability = round((unitComplexityRating+unitSizeRating+unitTestingRating)/3.0);
     return <analysability,changeability,stability,testability>;
 }
 
@@ -154,11 +154,11 @@ public str transFormSIG(int ratingNumber)
 		case 2:
 			return "++";
 		case 1:
-			return "+";
+			return "+ ";
 		case 0:
-			return "0";
+			return "0 ";
 		case -1:
-			return "-";
+			return "- ";
 		case -2:
 			return "--";
 	}
