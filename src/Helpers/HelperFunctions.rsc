@@ -13,14 +13,18 @@ public lrel[loc location,list[str] stringList] FilterAllFiles(set[loc] fileList)
 	
 	for(fileName <- fileList)
 	{
-		str textToFilter = readFile(fileName);
-		list[str] filteredText = removeComments(textToFilter);
-		returnList += <fileName,filteredText>;
+		returnList += <fileName,FilterSingleFile(fileName)>;
 	}
 	
 	return returnList;
 }
 
+public list[str] FilterSingleFile(loc fileName)
+{
+	str textToFilter = readFile(fileName);
+	list[str] returnText = removeComments(textToFilter);	
+	return returnText;
+}
 
 public list[str] removeComments(str inputString)
 {	

@@ -38,6 +38,9 @@ public void AnalyzeProject(loc locProject, str projectName)
 	list[str] totalReport = [];
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	
+	//prepare ast globally
+	set[loc] javaFiles = javaBestanden(locProject);
+	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false);
 
 	
 	totalReport+="**** analys started at: <startMoment> \n";
@@ -60,7 +63,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//Unit Complexity Metric
 	*/
-	unitComplexityRating = AnalyzeUnitComplexity(locProject);
+	unitComplexityRating = AnalyzeUnitComplexity(ASTDeclarations);
 		
 	for(key <- unitComplexityRating)
 	{
@@ -84,7 +87,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//unitSizeRating Metric
 	*/
-	unitSizeRating = AnalyzeUnitSize(locProject);
+	unitSizeRating = AnalyzeUnitSize(ASTDeclarations);
 	
 	for(key <- unitSizeRating)
 	{

@@ -18,19 +18,16 @@ import Metrics::UnitSize;
 import Metrics::UnitSizeAlt;
 
 // based on sample from YouLearn (first few lines only)
-public map [str, real] AnalyzeUnitComplexity(loc project)
+public map [str, real] AnalyzeUnitComplexity(set[Declaration] ASTDeclarations)
 {
-	// prepare AST
-	set[loc] files = javaBestanden(project);
-	set[Declaration] decls = createAstsFromFiles(files, false);
+	// prepare AST <- done globally 
 	// get complexity
-	map [loc, int] complexity = getCyclicComplexity(decls);
+	map [loc, int] complexity = getCyclicComplexity(ASTDeclarations);
 	// get risk
 	map [loc, int] risk = (a : getRisk(complexity[a]) | a <- domain(complexity));
 	// get weighted complexity
 	// first get the line count for each method (excluding comments)
-	//map [loc, int] linesOfCode = (a : size(removeCommentFromFile(a)) | a <- domain(complexity));// <- in house
-	map [loc, int] linesOfCode = countMethods(project, false);// <- using UnitSizeAlt 
+	map [loc, int] linesOfCode = countMethods(ASTDeclarations);// <- using UnitSizeAlt 
 	// then get the total line count
 	int totalLines = getRangeSum(linesOfCode);//sum([ linesOfCode[a] | a <- domain(linesOfCode)]);
 	// then get one map per risk level with the lines of code of each method
@@ -47,13 +44,7 @@ public map [str, real] AnalyzeUnitComplexity(loc project)
 	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
 }
   
-// from YouLearn sample
-//public set[loc] javaBestanden(loc project) {
-//   Resource r = getProject(project);
-//   return { a | /file(a) <- r, a.extension == "java" };
-//}
-
-// 
+// also used by "outside" methods 
 public map [loc, int] getCyclicComplexity(set[Declaration] decls)
 {
 	map[loc, int] cyclicComplexity = ();
@@ -72,17 +63,16 @@ public map [loc, int] getCyclicComplexity(set[Declaration] decls)
 			case \constructor(_, _, _, Statement impl): {
 				cyclicComplexity += getCyclicComplexityMethod(impl);
 			}
-			// finally there are initialisers
-			//case \initializer(Statement initializerBody): {
-			//	cyclicComplexity += getCyclicComplexityMethod(initializerBody);
-			//}
 		}
 	}
 	return cyclicComplexity;
 }
 
 // for each method check the complexity
-public map [loc, int] getCyclicComplexityMethod(Statement s){
+private map [loc, int] getCyclicComplexityMethod(Statement s){
+
+	// programmable: should exception handling be counted -> int = 1; if not int = 0;
+	int countExceptions = 1;
 	
 	// base complexity = 1 for each started method
 	int complexity = 1;
@@ -131,37 +121,29 @@ public map [loc, int] getCyclicComplexityMethod(Statement s){
 		}
 		// add one complexity for each decision related to error handling
 		case \throw(_): {
-			complexity += 1;
+			complexity += countExceptions;
 		}
 		case \try(_, _): {
-			complexity += 1;
+			complexity += countExceptions;
 		}
 		case \try(_, _, _): {
-			complexity += 1;
+			complexity += countExceptions;
 		}
 		case \catch(_,_): {
-			complexity += 1;
+			complexity += countExceptions;
 		}
 		// find conditionals using the [ expr ? a : b ] structure
 		case \conditional(_,_,_): {
 			complexity += 1;
 		}		
 	}
-	//debug
-	//println("Method <s.src> has complexity <complexity>");
+
 
 	return (s.src:complexity);
 }
 
-public list[str] removeCommentFromFile(loc fileName)
-{
-	str textToFilter = readFile(fileName);
-	list[str] returnText = removeComments(textToFilter);
-	return returnText;
-}
-
 // gets the complexity rating of a method in the range [2; -1]
-public int getRisk(int complexity){
+private int getRisk(int complexity){
 	if(complexity < 11) {
 		// low risk
 		return 2;
