@@ -149,13 +149,13 @@ public void AnalyzeProject(loc locProject, str projectName)
 	totalReport+=PrintAndReturnString("     | U | C | L | S | T || A ");
 	totalReport+=PrintAndReturnString("     | M | M | I | I | S || L ");
 	totalReport+=PrintAndReturnString("     | E | X | C | Z | T || * ");
-	totalReport+=PrintAndReturnString("-----|---|---|---|---|---||---");
+	totalReport+=PrintAndReturnString("_____|___|___|___|___|___||___");
 	totalReport+=PrintAndReturnString("ANALY|<transFormSIG(volumeRating)> |   |<transFormSIG(duplicationRating)> |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.analysability)>");
 	totalReport+=PrintAndReturnString("CHANG|   |<transFormSIG(overalComplexityRating)> |<transFormSIG(duplicationRating)> |   |   ||<transFormSIG(maintabilityRating.changeability)>");
 	totalReport+=PrintAndReturnString("STABI|   |   |   |   |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.stability)>");
 	totalReport+=PrintAndReturnString("TESTA|   |<transFormSIG(overalComplexityRating)> |   |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.testability)>");
-	totalReport+=PrintAndReturnString("-----|---|---|---|---|---||---");
-	totalReport+=PrintAndReturnString("TOTAL|---|---|---|---|---||<transFormSIG(GetTotalSIGRating(maintabilityRating))> ");
+	totalReport+=PrintAndReturnString("_____|___|___|___|___|___||___");
+	totalReport+=PrintAndReturnString("TOTAL|   |   |   |   |   ||<transFormSIG(GetTotalSIGRating(maintabilityRating))> ");
 	totalReport+=PrintAndReturnString("\n");
 	totalReport+=PrintAndReturnString("\n");
 	

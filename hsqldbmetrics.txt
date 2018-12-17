@@ -1,4 +1,4 @@
-**** analasys started at: $2018-12-17T19:26:15.416+00:00$
+**** analasys started at: $2018-12-17T20:00:11.766+00:00$
 total lines unfiltered: 285419
 total lines filtered: 159368
 **** line count SIG-rating: + 
@@ -27,22 +27,25 @@ Test coverage based on assert count: 1.83% - risk factor: --
 
 
 ISO 9126 mainainability chart
+______________________________
      | V | U | D | U | U || T 
      | O | N | U | N | N || O 
      | L | T | P | T | T || T 
      | U | C | L | S | T || A 
      | M | M | I | I | S || L 
      | E | X | C | Z | T || * 
------|---|---|---|---|---||---
+_____|___|___|___|___|___||___
 ANALY|+  |   |-  |-- |-- ||- 
 CHANG|   |-- |-  |   |   ||--
 STABI|   |   |   |   |-- ||--
 TESTA|   |-- |   |-- |-- ||--
+_____|___|___|___|___|___||___
+TOTAL|   |   |   |   |   ||-- 
 
 
 
 
-**** analys ended at: $2018-12-17T19:29:27.568+00:00$ and took 3 minutes 12 seconds 152 milliseconds 
+**** analys ended at: $2018-12-17T20:03:10.753+00:00$ and took 2 minutes 58 seconds 986 milliseconds 
 
 
 

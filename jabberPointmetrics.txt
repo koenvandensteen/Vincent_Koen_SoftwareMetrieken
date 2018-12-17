@@ -1,4 +1,4 @@
-**** analasys started at: $2018-12-17T19:31:20.490+00:00$
+**** analasys started at: $2018-12-17T19:59:45.495+00:00$
 total lines unfiltered: 2336
 total lines filtered: 1394
 **** line count SIG-rating: ++
@@ -34,18 +34,18 @@ ______________________________
      | U | C | L | S | T || A 
      | M | M | I | I | S || L 
      | E | X | C | Z | T || * 
------|---|---|---|---|---||---
+_____|___|___|___|___|___||___
 ANALY|++ |   |++ |-- |-- ||0 
 CHANG|   |++ |++ |   |   ||++
 STABI|   |   |   |   |-- ||--
 TESTA|   |++ |   |-- |-- ||- 
------|---|---|---|---|---||---
-TOTAL|---|---|---|---|---||0  
+_____|___|___|___|___|___||___
+TOTAL|   |   |   |   |   ||0  
 
 
 
 
-**** analys ended at: $2018-12-17T19:31:21.158+00:00$ and took 0 minutes 0 seconds 668 milliseconds 
+**** analys ended at: $2018-12-17T19:59:46.472+00:00$ and took 0 minutes 0 seconds 977 milliseconds 
 
 
 
