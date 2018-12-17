@@ -100,9 +100,9 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 		case \try(_, _, _): {
 			complexity += countExceptions;
 		}
-		case \catch(_,_): {
-			complexity += countExceptions;
-		}
+		//case \catch(_,_): {
+		//	complexity += countExceptions;
+		//}
 		// find conditionals using the [ expr ? a : b ] structure
 		case \conditional(_,_,_): {
 			complexity += 1;
