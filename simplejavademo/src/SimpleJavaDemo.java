@@ -83,7 +83,7 @@ public class SimpleJavaDemo {
 	}
 	
 	// unit size: 24
-	// unit complexity: 1 + 2 + 2 + 3 + 1 = 10
+	// unit complexity: 1 + 2 + 4 + 3 + 1 = 11
 	public void doeNogMeer(){
 		int a = 10;
 		int b = 3;
@@ -92,9 +92,9 @@ public class SimpleJavaDemo {
 		if(a > b && a%2 == 0){
 			a++;
 		}
-		// nog een if (met else branch) en twee x infix
-		// complexity + 3
-		if(a > b || a%2 == 0 || a%3 == 0){
+		// nog een if (met else branch) en drie x infix
+		// complexity + 4
+		if(a > b || a == b || a%2 == 0 || a%3 == 0){
 			a++;
 		}
 		else{
