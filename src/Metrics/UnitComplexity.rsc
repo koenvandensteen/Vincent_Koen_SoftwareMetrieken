@@ -17,7 +17,9 @@ import Helpers::HelperFunctions;
 import Metrics::UnitSize;
 import Metrics::UnitSizeAlt;
 
-// also used by "outside" methods 
+/*
+/	main method of this metric, returns a map with locations per method and their respective complexity
+*/
 public map [loc, int] AnalyzeUnitComplexity(set[Declaration] decls)
 {
 	map[loc, int] cyclicComplexity = ();

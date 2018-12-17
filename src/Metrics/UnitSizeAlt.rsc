@@ -16,20 +16,6 @@ import util::Math;
 
 import Helpers::HelperFunctions;
 
-
-public void TestAnalyzeUnitSize()
-{
-	loc project = |project://SimpleJavaDemo|;	
-	// prepare AST
-	set[loc] files = getFilesJava(project);
-	set[Declaration] ASTDeclarations = createAstsFromFiles(files, false);	
-	// for testing
-	map [loc, int] sizes = AnalyzeUnitSize(ASTDeclarations);	
-	for(i <- domain(sizes)){
-		println("<i> has <sizes[i]> lines.");
-	}	
-}
-
 /*
 /	main method of this metric, returns a map with locations per method and their respective size
 */

@@ -1,18 +1,16 @@
-
-import java.io.File;
-
 // testclasse voor opdracht 1 SEV
 // todo:
 // - ergens constructor toevoegen
 // - unit tests?
 
-
+// total lines = 2 (class level) + 8 + 18 + 18 + 24 + 10 = 80
 public class SimpleJavaDemo {
     
 	// unit size: 8
+	// unit complexity: 1 + 2 = 3
     public static void main(String[] args) {
 		//try-catch block
-		// complexity + 1
+		// complexity + 2
 		try{
 			doeIets(1000);
 		}
@@ -25,6 +23,7 @@ public class SimpleJavaDemo {
 	/*
 	* javadoc telt niet mee in line count
 	* unit size: 18
+	* unit complexity: 1 + 1 + 2 = 4
 	*/
 	public static void doeIets(int input){
 		// een regel commentaar telt ook niet mee
@@ -55,6 +54,7 @@ public class SimpleJavaDemo {
 	}
 	
 	// unit size: 18
+	// unit complexity: 1 + 1 + 2 = 4
 	public int doeIetsAnders(int input){
 		int retVal = 0;
 		
@@ -83,6 +83,7 @@ public class SimpleJavaDemo {
 	}
 	
 	// unit size: 24
+	// unit complexity: 1 + 2 + 2 + 3 + 1 = 9s
 	public void doeNogMeer(){
 		int a = 10;
 		int b = 3;
@@ -119,6 +120,7 @@ public class SimpleJavaDemo {
 	}
 	
 	// unit size: 10
+	// unit complexity: 1 + 1 + 1 = 3
 	public void blijfMaarDoen(){
 		String[] fruits = new String[] { "Orange", "Apple", "Pear", "Strawberry" };
 		boolean bool = false;
