@@ -4,6 +4,8 @@ import String;
 import Map;
 import List;
 import util::Resources;
+import util::Math;
+
 
 import IO;
 
@@ -43,7 +45,7 @@ private bool isWhiteLine(str line) {
 }
 
 // from YouLearn sample
-public set[loc] javaBestanden(loc project) {
+public set[loc] getFilesJava(loc project) {
    Resource r = getProject(project);
    return { a | /file(a) <- r, a.extension == "java" };
 }
@@ -55,4 +57,27 @@ public int getRangeSum(map [loc, int] input){
 		return 0;
 		
 	return sum([input[a] | a <- domain(input)]);
+}
+
+
+public map[str, real] getRiskFactions(map [loc, int] metricMap, map [loc, int] risk){
+
+	real factionLow  = 0.0;
+	real factionModerate = 0.0;
+	real factionHigh = 0.0;
+	real factionExtreme = 0.0;
+
+	int metricSize = getRangeSum(metricMap);
+	// then get one map per risk level with the lines of code of each method
+	map [loc, int] lowRisk = (a:metricMap[a] | a <- domain(risk), risk[a] == 1);
+	map [loc, int] moderateRisk = (a:metricMap[a] | a <- domain(risk), risk[a] == 0);
+	map [loc, int] highRisk = (a:metricMap[a] | a <- domain(risk), risk[a] == -1);
+	map [loc, int] extremeRisk = (a:metricMap[a] | a <- domain(risk), risk[a] == -2);
+	// after that, get the relative percentage of these risk categories
+	factionLow = toReal(getRangeSum(lowRisk))/metricSize;
+	factionModerate = toReal(getRangeSum(moderateRisk))/metricSize; 
+	factionHigh = toReal(getRangeSum(highRisk))/metricSize;
+	factionExtreme = toReal(getRangeSum(extremeRisk))/metricSize;
+	
+	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
 }

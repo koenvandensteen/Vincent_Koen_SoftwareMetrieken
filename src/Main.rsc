@@ -8,6 +8,7 @@ import util::Math;
 import util::Resources;
 import DateTime;
 import List;
+import Map;
 
 import Helpers::HelperFunctions;
 import Helpers::DataContainers;
@@ -24,11 +25,11 @@ import util::Math;
 public void AnalyzeAllProjects()
 {
 	println("******* START ANALYZE JABBERPOINT *********");
-	AnalyzeProject(|project://Jabberpoint|,"jabberPoint");
+	//AnalyzeProject(|project://Jabberpoint|,"jabberPoint");
 	println("******* START ANALYZE smallsql *********");
 	AnalyzeProject(|project://smallsql|,"smallsql");
 	println("******* START ANALYZE hsqldb *********");
-	AnalyzeProject(|project://hsqldb|,"hsqldb");
+	//AnalyzeProject(|project://hsqldb|,"hsqldb");
 }
 
 public void AnalyzeProject(loc locProject, str projectName)
@@ -39,7 +40,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	
 	//prepare ast globally
-	set[loc] javaFiles = javaBestanden(locProject);
+	set[loc] javaFiles = getFilesJava(locProject);
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false);
 
 	
@@ -61,9 +62,28 @@ public void AnalyzeProject(loc locProject, str projectName)
 	totalReport+="**** line count SIG-rating: <transFormSIG(volumeRating)>\n";
 	println(totalReport[size(totalReport)-1]);	
 	/*
+	//unitSizeRating Metric
+	*/
+	unitSizeMap = AnalyzeUnitSize(ASTDeclarations); 
+	unitSizeRisk = (a : GetUnitSizeRisk(unitSizeMap[a]) | a <- domain(unitSizeMap));
+	unitSizeRating = getRiskFactions(unitSizeMap, unitSizeRisk);
+
+	for(key <- unitSizeRating)
+	{
+		totalReport+="percentage <key> unit sizes: <round(unitSizeRating[key]*100,0.01)>%\n";
+	println(totalReport[size(totalReport)-1]);
+	}
+	
+	int overalUnitSizeRating = GetUnitComplexityRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
+	totalReport+="**** unity size SIG-rating: <transFormSIG(overalUnitSizeRating)>\n";
+	println(totalReport[size(totalReport)-1]);
+	/*
 	//Unit Complexity Metric
 	*/
-	unitComplexityRating = AnalyzeUnitComplexity(ASTDeclarations);
+	unitComplexityMap = AnalyzeUnitComplexity(ASTDeclarations);
+	unitComplexityRisk = (a : GetUnitComplexityRisk(unitComplexityMap[a]) | a <- domain(unitComplexityMap));
+	unitComplexityRating = getRiskFactions(unitSizeMap, unitComplexityRisk);
+	
 		
 	for(key <- unitComplexityRating)
 	{
@@ -84,20 +104,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	int duplicationRating = GetDuplicationRating(duplicatePercentage);
 	totalReport+="**** duplication SIG-rating: <transFormSIG(duplicationRating)>\n";
 	println(totalReport[size(totalReport)-1]);
-	/*
-	//unitSizeRating Metric
-	*/
-	unitSizeRating = AnalyzeUnitSize(ASTDeclarations);
-	
-	for(key <- unitSizeRating)
-	{
-		totalReport+="percentage <key> unit sizes: <round(unitSizeRating[key]*100,0.01)>%\n";
-	println(totalReport[size(totalReport)-1]);
-	}
-	
-	int overalUnitSizeRating = GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]);
-	totalReport+="**** unity size SIG-rating: <transFormSIG(overalUnitSizeRating)>\n";
-	println(totalReport[size(totalReport)-1]);
+
 	/*
 	//unit Test Rating metric
 	*/

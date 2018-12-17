@@ -21,7 +21,7 @@ public void analyzeTests()
 	//get complexity when used as stand-alone
 	set[loc] files = javaBestanden(project);
 	set[Declaration] decls = createAstsFromFiles(files, false);
-	int complexity = getRangeSum(getCyclicComplexity(decls));	
+	int complexity = getRangeSum(AnalyzeUnitComplexity(decls));	
 	evaluateTests(decls, complexity );		
 }
 
@@ -200,63 +200,3 @@ public int getRisk(real coverage){
 		return -2;
 	}
 }
-
-
-//public void evaluateTestsM3(loc project){
-//	M3 model = createM3FromEclipseProject(project);
-//	
-//	// get all methods of the core project and all test methods 
-//	testMethods = {<a, b> | <a, b> <- model.containment, a.scheme=="java+class", b.scheme == "java+method", /.*Test.*/ := a.uri, /test.*()/:= getMethodFromPath(b.uri)};
-//	coreMethods = {<a, b> | <a, b> <- model.containment, a.scheme=="java+class", b.scheme == "java+method", a notin domain(testMethods)};	
-//		
-//	// prepare AST
-//	set[loc] files = javaBestanden(project);
-//	set[Declaration] decls = createAstsFromFiles(files, false);
-//	
-//	for(d <- decls){
-//		visit(d){
-//			case c:\class(str name, _, _, _): {
-//				println(c);
-//			}
-//		}
-//	}
-//
-//
-//// debug
-//	for(i <- range(testMethods)){
-//		//if(/test.*()/:=i.uri)
-//		//println(i);
-//		//println(readFile(i));
-//		int j = 0;
-//	}
-//	
-//	
-//
-//}
-//
-//
-//public list[loc] getCalledMethods(set[Declaration] dcls){
-//	list[loc] called = [];
-//	
-//	for(d <- dcls){
-//		visit(d){
-//			case  a:\methodCall(_, str name, _): {	
-//				println(d);
-//				println();
-//				println(a);
-//				println();
-//				println();
-//			}
-//			case  a:\methodCall(_, _, str name, _): {	
-//				println(a);
-//			}
-//		}
-//	}
-//	
-//	return called;
-//}
-
-//public str getMethodFromPath(str s){
-//	int i = findLast(s, "/");
-//	return substring(s, i + 1);
-//}

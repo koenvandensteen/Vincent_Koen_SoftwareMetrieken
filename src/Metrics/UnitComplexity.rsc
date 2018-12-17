@@ -17,35 +17,8 @@ import Helpers::HelperFunctions;
 import Metrics::UnitSize;
 import Metrics::UnitSizeAlt;
 
-// based on sample from YouLearn (first few lines only)
-public map [str, real] AnalyzeUnitComplexity(set[Declaration] ASTDeclarations)
-{
-	// prepare AST <- done globally 
-	// get complexity
-	map [loc, int] complexity = getCyclicComplexity(ASTDeclarations);
-	// get risk
-	map [loc, int] risk = (a : getRisk(complexity[a]) | a <- domain(complexity));
-	// get weighted complexity
-	// first get the line count for each method (excluding comments)
-	map [loc, int] linesOfCode = countMethods(ASTDeclarations);// <- using UnitSizeAlt 
-	// then get the total line count
-	int totalLines = getRangeSum(linesOfCode);//sum([ linesOfCode[a] | a <- domain(linesOfCode)]);
-	// then get one map per risk level with the lines of code of each method
-	map [loc, int] lowRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 2);
-	map [loc, int] moderateRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 1);
-	map [loc, int] highRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == 0);
-	map [loc, int] extremeRisk = (a:linesOfCode[a] | a <- domain(risk), risk[a] == -1);
-	// after that, get the relative percentage of these risk categories
-	real factionLow = toReal(getRangeSum(lowRisk))/totalLines;
-	real factionModerate = toReal(getRangeSum(moderateRisk))/totalLines; //sum([moderateRisk[a] | a <- domain(moderateRisk)])/totalLines;
-	real factionHigh = toReal(getRangeSum(highRisk))/totalLines;//sum([highRisk[a]  | a <- domain(highRisk)])/totalLines;
-	real factionExtreme = toReal(getRangeSum(extremeRisk))/totalLines;//sum([extremeRisk[a]  | a <- domain(extremeRisk)])/totalLines;
-		
-	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
-}
-  
 // also used by "outside" methods 
-public map [loc, int] getCyclicComplexity(set[Declaration] decls)
+public map [loc, int] AnalyzeUnitComplexity(set[Declaration] decls)
 {
 	map[loc, int] cyclicComplexity = ();
 	Declaration file;
@@ -140,24 +113,4 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 
 
 	return (s.src:complexity);
-}
-
-// gets the complexity rating of a method in the range [2; -1]
-private int getRisk(int complexity){
-	if(complexity < 11) {
-		// low risk
-		return 2;
-	}
-	else if(complexity < 21){
-		// moderate risk
-		return 1;
-	}
-	else if(complexity < 51){
-		// high risk
-		return 0;
-	}
-	else {
-		// very high risk
-		return -1;
-	}
 }

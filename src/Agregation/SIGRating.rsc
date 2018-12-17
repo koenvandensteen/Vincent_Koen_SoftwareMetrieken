@@ -50,6 +50,26 @@ public int GetUnitComplexityRating(real mid, real high, real extreme){
 	}
 }
 
+// gets the complexity rating of a method in the range [1; -2]
+public int GetUnitComplexityRisk(int complexity){
+	if(complexity < 11) {
+		// low risk
+		return 1;
+	}
+	else if(complexity < 21){
+		// moderate risk
+		return 0;
+	}
+	else if(complexity < 51){
+		// high risk
+		return -1;
+	}
+	else {
+		// very high risk
+		return -2;
+	}
+}
+
 // gets the overal rating of the program in the range [2; -2]
 public int GetUnitSizeRating(real mid, real high, real extreme){
 	if(mid <= 0.40 && high < 0.1 && extreme < 0.01)
@@ -64,6 +84,26 @@ public int GetUnitSizeRating(real mid, real high, real extreme){
 		return -1;
 	}
 	else{
+		return -2;
+	}
+}
+
+// gets the size rating of a method in the range [2; -1]
+public int GetUnitSizeRisk(int unitSize){
+	if(unitSize < 15) {
+		// low risk
+		return 1;
+	}
+	else if(unitSize < 30){
+		// moderate risk
+		return 0;
+	}
+	else if(unitSize < 60){
+		// high risk
+		return -1;
+	}
+	else {
+		// very high risk
 		return -2;
 	}
 }
