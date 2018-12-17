@@ -1,8 +1,6 @@
 module Metrics::UnitComplexity
 
 import IO;
-import util::Resources;
-
 import List;
 import Map;
 import Relation;
@@ -14,7 +12,6 @@ import util::Math;
 
 import Helpers::HelperFunctions;
 
-import Metrics::UnitSize;
 import Metrics::UnitSizeAlt;
 
 /*
@@ -55,8 +52,7 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 	// For each of the following in the Statment (method) add one for complexity
 	// based on list at http://tutor.rascal-mpl.org/Rascal/Declarations/Function/Function.html#/Rascal/Libraries/lang/java/m3/AST/Declaration/Declaration.html
 	// filtered in order to only keep the "choices"
-	visit(s)
-	{
+	visit(s){
 		// add one complexity point for each itterative structure		
 		case \do(_, _): {
 			complexity += 1;
@@ -112,7 +108,5 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 			complexity += 1;
 		}		
 	}
-
-
 	return (s.src:complexity);
 }

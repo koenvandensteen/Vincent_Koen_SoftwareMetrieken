@@ -10,7 +10,7 @@ import Map;
 import Helpers::HelperFunctions;
 import Helpers::DataContainers;
 //modules to be tested
-import Metrics::UnitSizeAlt;
+import Metrics::UnitSize;
 import Metrics::UnitComplexity;
 import Metrics::LOC;
 import Metrics::Duplication;
@@ -21,7 +21,7 @@ public void TestAll(){
 	int vUnitSize = 85;
 	int vComplexity = 25;
 	int vLOC = 92;
-	int vDuplicate = 0;
+	int vDuplicate = -1;
 	tuple[real v1, real v2] vUnitTest = <1.0/5.0, 2.0/24.0>;
 
 	// initialise 
@@ -33,10 +33,10 @@ public void TestAll(){
 	projectList filteredProject = FilterAllFiles(files);	
 	
 	//run tests
-	s1 = TestAnalyzeUnitSize(ASTDeclarations, 85);
-	s2 = TestAnalyzeUnitComplexity(ASTDeclarations, 25);
-	s3 = TestLOC(filteredProject, 92);
-	s4 = TestDuplication(filteredProject, 0);
+	s1 = TestAnalyzeUnitSize(ASTDeclarations, vUnitSize);
+	s2 = TestAnalyzeUnitComplexity(ASTDeclarations, vComplexity);
+	s3 = TestLOC(filteredProject, vLOC);
+	s4 = TestDuplication(filteredProject, vDuplicate);
 	s5 = TestAnalyzeUnitTests(ASTDeclarations, vUnitTest);
 	
 	println("\n All tests <(s1 && s2 && s3 && s4 && s5) ? "did":"did NOT"> succeed.");
@@ -92,6 +92,7 @@ public bool TestDuplication(projectList filteredProject, int verif){
 	println("\nNow testing duplication:");
 	int duplicatedLines = AnalyzeDuplication(filteredProject);
 	println("total lines duplicated: <duplicatedLines>");
+	
 	success = (verif := duplicatedLines);
 	print("Are these results what we expect? - ");
 	println(success ? "Yes" : "No");
@@ -99,6 +100,8 @@ public bool TestDuplication(projectList filteredProject, int verif){
 }
 
 public bool TestAnalyzeUnitTests(set[Declaration] ASTDeclarations, tuple [real v1, real v2] verif){	
+	// for testing
+	println("\nNow testing test coverage:");
 	tuple[real v1, real v2] unitTest = AnalyzeUnitTest(ASTDeclarations);
 	println("Test coverage based on method pairing: <unitTest.v1>");
 	println("Test coverage based on assert count: <unitTest.v2>");

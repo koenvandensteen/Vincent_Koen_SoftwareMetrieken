@@ -15,7 +15,7 @@ import Helpers::DataContainers;
 
 import Metrics::LOC;
 import Metrics::UnitComplexity;
-import Metrics::UnitSizeAlt;
+import Metrics::UnitSize;
 import Metrics::Duplication;
 import Metrics::UnitTests;
 
