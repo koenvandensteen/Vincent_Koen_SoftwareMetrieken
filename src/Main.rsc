@@ -17,6 +17,9 @@ import Metrics::LOC;
 import Metrics::UnitComplexity;
 import Metrics::UnitSizeAlt;
 import Metrics::Duplication;
+import Metrics::UnitTests;
+
+import Testing::TestRascal;
 
 import Agregation::SIGRating;
 
@@ -25,11 +28,21 @@ import util::Math;
 public void AnalyzeAllProjects()
 {
 	println("******* START ANALYZE JABBERPOINT *********");
-	//AnalyzeProject(|project://Jabberpoint|,"jabberPoint");
+	AnalyzeProject(|project://Jabberpoint|,"jabberPoint");
 	println("******* START ANALYZE smallsql *********");
 	AnalyzeProject(|project://smallsql|,"smallsql");
 	println("******* START ANALYZE hsqldb *********");
-	//AnalyzeProject(|project://hsqldb|,"hsqldb");
+	AnalyzeProject(|project://hsqldb|,"hsqldb");
+}
+
+public void RunTestProgram(){
+	// run test module
+	println("******* CHECK PROGRAM VALIDITY *********");
+	TestAll();
+	println();
+	// run main with test project
+	println("******* START ANALYZE TEST PROJECT *********");
+	AnalyzeProject(|project://SimpleJavaDemo|,"Test Project");
 }
 
 public void AnalyzeProject(loc locProject, str projectName)
@@ -83,7 +96,6 @@ public void AnalyzeProject(loc locProject, str projectName)
 	unitComplexityMap = AnalyzeUnitComplexity(ASTDeclarations);
 	unitComplexityRisk = (a : GetUnitComplexityRisk(unitComplexityMap[a]) | a <- domain(unitComplexityMap));
 	unitComplexityRating = getRiskFactions(unitSizeMap, unitComplexityRisk);
-	
 		
 	for(key <- unitComplexityRating)
 	{
@@ -108,8 +120,17 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//unit Test Rating metric
 	*/
-	int unitTestingRating = 0;
+	
 	//TODO MAKE THIS HAPEN
+	tuple[real v1, real v2] unitTestCoverage = AnalyzeUnitTest(ASTDeclarations);
+	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(getTestRating(unitTestCoverage.v1))>\n");
+	println("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(getTestRating(unitTestCoverage.v2))>\n");
+	// selected the more representative assert count method for further metrics
+	int unitTestingRating = getTestRating(unitTestCoverage.v2);
+	totalReport+="**** test coverage SIG-rating: <transFormSIG(unitTestingRating)>\n";
+	println(totalReport[size(totalReport)-1]);
+	
+	//
 		
 	maintabilityRating = GetMaintabilityRating(volumeRating, overalComplexityRating, duplicationRating, overalUnitSizeRating, unitTestingRating);
 	totalReport+="**** analysability: <transFormSIG(maintabilityRating.analysability)>\n";

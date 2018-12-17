@@ -60,7 +60,7 @@ public class SimpleJavaDemo {
 		
 		// for loop complexity + 1
 		for(int i = 0; i < input; i++){
-			retVal = retVal/2 + 1;			
+			retVal = retVal/2 + 10;			
 		}
 		
 		//duplicated if
@@ -83,7 +83,7 @@ public class SimpleJavaDemo {
 	}
 	
 	// unit size: 24
-	// unit complexity: 1 + 2 + 2 + 3 + 1 = 9s
+	// unit complexity: 1 + 2 + 2 + 3 + 1 = 10
 	public void doeNogMeer(){
 		int a = 10;
 		int b = 3;
@@ -92,9 +92,9 @@ public class SimpleJavaDemo {
 		if(a > b && a%2 == 0){
 			a++;
 		}
-		// nog een if (met else branch) en een infix
-		// complexity + 2
-		if(a > b || a%2 == 0){
+		// nog een if (met else branch) en twee x infix
+		// complexity + 3
+		if(a > b || a%2 == 0 || a%3 == 0){
 			a++;
 		}
 		else{

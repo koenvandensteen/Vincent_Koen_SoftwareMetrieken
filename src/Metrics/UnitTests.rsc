@@ -1,4 +1,4 @@
-module Metrics::unitTests
+module Metrics::UnitTests
 
 import Set;
 import Map;
@@ -15,23 +15,14 @@ import util::Math;
 import Helpers::HelperFunctions;
 import Metrics::UnitComplexity;
 
-public void analyzeTests()
-{
-	loc project = |project://smallsql|;	
-	//get complexity when used as stand-alone
-	set[loc] files = javaBestanden(project);
-	set[Declaration] decls = createAstsFromFiles(files, false);
-	int complexity = getRangeSum(AnalyzeUnitComplexity(decls));	
-	evaluateTests(decls, complexity );		
-}
-
-
 // based on sample from YouLearn (first few lines only)
-public int evaluateTests(set[Declaration] ASTDeclarations, int cyclicComplexity)
+public tuple[real, real] AnalyzeUnitTest(set[Declaration] ASTDeclarations)
 {
+	// We do not want the complexity of the unit tests to be a factor in the test coverage, we need a separate complexity rating for just the main code
+	set[Declaration] pureDeclarations = {};
+
 	// prepare AST <- done globally
 	// get list of tests and their assert-count
-	//map[loc, int] unitTests = getUnitTests(decls);
 	// get a list of methods
 	list[str] testedMethods = [];
 	list[str] projectMethods = [];
@@ -47,8 +38,12 @@ public int evaluateTests(set[Declaration] ASTDeclarations, int cyclicComplexity)
 		// get tested methods
 		else{
 			projectMethods += getMethodsFromFile(d);
+			pureDeclarations += d;
 		}
 	}
+	
+	// get filtered cyclicComplexity
+	int complexity = getRangeSum(AnalyzeUnitComplexity(pureDeclarations));
 	
 	//count code coverage
 	int tested = 0;
@@ -61,16 +56,20 @@ public int evaluateTests(set[Declaration] ASTDeclarations, int cyclicComplexity)
 			untested+=1;
 		}
 	}
-	println("Total project methods = <size(projectMethods)> (excluding test methods), tested project methods = <tested>, untested = <untested>, asserts = <assertCount>, complexity = <cyclicComplexity>.");
-	
+	// debug prints
+		
 	// very naive aproach: project methods/counted methods
-	int overalRisk_V1 = getRisk(toReal(tested)/size(projectMethods));
+	//int overalRisk_V1 = getRisk(toReal(tested)/size(projectMethods));
+	//println("Total project methods = <size(projectMethods)> (excluding test methods), tested project methods = <tested>, untested = <untested>, asserts = <assertCount>, complexity = <complexity>.");		
 	// naive approach: assert statements vs cc
-	int overalRisk_V2 = getRisk(toReal(assertCount)/cyclicComplexity);
+	//int overalRisk_V2 = getRisk(toReal(assertCount)/cyclicComplexity);
+	// percentage coverage
+	//println("V1 risk: <overalRisk_V1>, V2 risk: <overalRisk_V2>");
 	
-	println("V1 risk: <overalRisk_V1>, V2 risk: <overalRisk_V2>");
+	// first real = naive approach 1 (method calls vs all methods using name matching), second real = assertCount/Complexity
+	tuple [real v1, real v2] result = <toReal(tested)/size(projectMethods),toReal(assertCount)/complexity>;
 	
-	return overalRisk_V2;
+	return result;
 	
 }
 
@@ -177,26 +176,3 @@ public int getAssertCount(Declaration d){
 	return count;
 }
 
-// gets the complexity rating of a method in the range [2; -1]
-public int getRisk(real coverage){
-	if(coverage > 0.95) {
-		// low risk
-		return 2;
-	}
-	else if(coverage > 0.8){
-		// moderate risk
-		return 1;
-	}
-	else if(coverage > 0.6){
-		// high risk
-		return 0;
-	}
-	else if(coverage > 0.2){
-		// high risk
-		return -1;
-	}
-	else {
-		// very high risk
-		return -2;
-	}
-}

@@ -108,6 +108,30 @@ public int GetUnitSizeRisk(int unitSize){
 	}
 }
 
+// gets the test Risk of a method in the range [2; -2]
+public int getTestRating(real coverage){
+	if(coverage > 0.95) {
+		// low risk
+		return 2;
+	}
+	else if(coverage > 0.8){
+		// moderate risk
+		return 1;
+	}
+	else if(coverage > 0.6){
+		// high risk
+		return 0;
+	}
+	else if(coverage > 0.2){
+		// high risk
+		return -1;
+	}
+	else {
+		// very high risk
+		return -2;
+	}
+}
+
 
 public maintainAbilityRating GetMaintabilityRating(int volumeRating, int unitComplexityRating, int duplicationRating, int unitSizeRating, int unitTestingRating)
 {
