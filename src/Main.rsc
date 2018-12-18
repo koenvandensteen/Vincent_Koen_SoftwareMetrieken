@@ -85,7 +85,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 		totalReport+=PrintAndReturnString("percentage <key> unit sizes: <round(unitSizeRating[key]*100,0.01)>%");
 	}
 	
-	int overalUnitSizeRating = GetUnitComplexityRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
+	int overalUnitSizeRating = GetUnitSizeRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
 	
 	totalReport+=PrintAndReturnString("**** unit size SIG-rating: <transFormSIG(overalUnitSizeRating)>");
 	println("\n");
@@ -141,7 +141,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	totalReport+=PrintAndReturnString("\n");
 	totalReport+=PrintAndReturnString("\n");
 	
-	totalReport+=PrintAndReturnString("ISO 9126 mainainability chart");
+	totalReport+=PrintAndReturnString("ISO 9126 maintainability chart");
 	totalReport+=PrintAndReturnString("______________________________");
 	totalReport+=PrintAndReturnString("     | V | U | D | U | U || T ");	
 	totalReport+=PrintAndReturnString("     | O | N | U | N | N || O ");	

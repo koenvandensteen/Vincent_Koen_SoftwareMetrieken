@@ -1,12 +1,12 @@
-**** analasys started at: $2018-12-17T19:59:45.495+00:00$
+**** analasys started at: $2018-12-18T17:26:57.535+00:00$
 total lines unfiltered: 2336
 total lines filtered: 1394
 **** line count SIG-rating: ++
 percentage factionExtreme unit sizes: 9.08%
-percentage factionLow unit sizes: 68.57%
+percentage factionLow unit sizes: 29.39%
 percentage factionHigh unit sizes: 15.31%
 percentage factionModerate unit sizes: 7.04%
-**** unit size SIG-rating: --
+**** unit size SIG-rating: 0 
 percentage factionExtreme risk units: 0.00%
 percentage factionLow risk units: 95.92%
 percentage factionHigh risk units: 0.00%
@@ -17,10 +17,10 @@ total lines duplicated percentage: 1.79%
 **** duplication SIG-rating: ++
 Test coverage based on assert count: 0.00% - risk factor: --
 **** test coverage SIG-rating: --
-**** analysability: 0 
+**** analysability: + 
 **** changeability: ++
 **** stability: --
-**** testability: - 
+**** testability: 0 
 |project://Jabberpoint| has been analyzed and receives an overal rating of: 0 
 
 
@@ -35,17 +35,17 @@ ______________________________
      | M | M | I | I | S || L 
      | E | X | C | Z | T || * 
 _____|___|___|___|___|___||___
-ANALY|++ |   |++ |-- |-- ||0 
+ANALY|++ |   |++ |0  |-- ||+ 
 CHANG|   |++ |++ |   |   ||++
 STABI|   |   |   |   |-- ||--
-TESTA|   |++ |   |-- |-- ||- 
+TESTA|   |++ |   |0  |-- ||0 
 _____|___|___|___|___|___||___
 TOTAL|   |   |   |   |   ||0  
 
 
 
 
-**** analys ended at: $2018-12-17T19:59:46.472+00:00$ and took 0 minutes 0 seconds 977 milliseconds 
+**** analys ended at: $2018-12-18T17:26:58.279+00:00$ and took 0 minutes 0 seconds 744 milliseconds 
 
 
 

@@ -1,9 +1,9 @@
-**** analasys started at: $2018-12-17T19:59:47.590+00:00$
+**** analasys started at: $2018-12-18T17:26:58.287+00:00$
 total lines unfiltered: 39497
 total lines filtered: 24646
 **** line count SIG-rating: ++
 percentage factionExtreme unit sizes: 16.06%
-percentage factionLow unit sizes: 45.43%
+percentage factionLow unit sizes: 23.71%
 percentage factionHigh unit sizes: 17.28%
 percentage factionModerate unit sizes: 21.22%
 **** unit size SIG-rating: --
@@ -26,7 +26,7 @@ Test coverage based on assert count: 15.39% - risk factor: --
 
 
 
-ISO 9126 mainainability chart
+ISO 9126 maintainability chart
 ______________________________
      | V | U | D | U | U || T 
      | O | N | U | N | N || O 
@@ -45,7 +45,7 @@ TOTAL|   |   |   |   |   ||--
 
 
 
-**** analys ended at: $2018-12-17T20:00:11.762+00:00$ and took 0 minutes 24 seconds 172 milliseconds 
+**** analys ended at: $2018-12-18T17:27:20.562+00:00$ and took 0 minutes 22 seconds 275 milliseconds 
 
 
 

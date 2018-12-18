@@ -2,6 +2,7 @@ module Agregation::SIGRating
 
 import Helpers::DataContainers;
 import util::Math;
+import IO;
 
 public int GetSigRatingLOC(int LOC)
 {
@@ -72,24 +73,31 @@ public int GetUnitComplexityRisk(int complexity){
 
 // gets the overal rating of the program in the range [2; -2]
 public int GetUnitSizeRating(real mid, real high, real extreme){
+
+	println("mid: <mid> high: <high> extreme: <extreme>");
 	if(mid <= 0.40 && high < 0.1 && extreme < 0.01)
 		return 2;
 	if (mid <= 0.42 && high < 0.191 && extreme < 0.056){ //4* rating based on Tubit EVulation
 		return 1;
 	}
-	if (mid <= 0.5 && high <= 0.25 && extreme == 0.1){
+	if (mid <= 0.5 && high <= 0.25 && extreme < 0.1){
 		return 0;
 	}
-	if (mid <= 0.6 && high <= 0.30 && extreme == 0.15){
+	if (mid <= 0.6 && high <= 0.30 && extreme < 0.15){
 		return -1;
 	}
 	else{
 		return -2;
 	}
+	
 }
 
 // gets the size rating of a method in the range [2; -1]
 public int GetUnitSizeRisk(int unitSize){
+	if(unitSize < 5) {
+		// low risk
+		return 2;
+	}
 	if(unitSize < 15) {
 		// low risk
 		return 1;
