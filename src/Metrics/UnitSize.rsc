@@ -29,19 +29,19 @@ public map [loc, int] AnalyzeUnitSize(set[Declaration] decls)
 			// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
    			// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
    			// we only consider type a since type b all seem to be abstract methods that do not add lines of code to the executable methods
-			case \method(_, _, _, _,Statement impl): {
-				unitSize += getUnitSize(impl);
+			case m: \method(_, _, _, _,Statement impl): {
+				unitSize += (m.src:getUnitSize(impl));
 			}
 			// we also consider the constructors as these may contain elements that affect the complexity
-			case \constructor(_, _, _, Statement impl): {
-				unitSize += getUnitSize(impl);
+			case m: \constructor(_, _, _, Statement impl): {
+				unitSize += (m.src:getUnitSize(impl));
 			}
 		}
 	}
 	return unitSize;
 }
 
-private map [loc, int] getUnitSize(Statement s){
+private int getUnitSize(Statement s){
 	list[str] filteredFile = FilterSingleFile(s.src);
-	return (s.src:size(filteredFile));
+	return size(filteredFile);
 }

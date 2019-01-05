@@ -28,12 +28,12 @@ public map [loc, int] AnalyzeUnitComplexity(set[Declaration] decls)
 			// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
    			// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
    			// we only consider type a since type b all seem to be abstract methods that do not add complexity
-			case \method(_, _, _, _,Statement impl): {
-				cyclicComplexity += getCyclicComplexityMethod(impl);
+			case m: \method(_, _, _, _, Statement impl): {
+				cyclicComplexity += (m.src:getCyclicComplexityMethod(impl));
 			}
 			// we also consider the constructors as these may contain elements that affect the complexity
-			case \constructor(_, _, _, Statement impl): {
-				cyclicComplexity += getCyclicComplexityMethod(impl);
+			case m: \constructor(_, _, _, Statement impl): {
+				cyclicComplexity += (m.src:getCyclicComplexityMethod(impl));
 			}
 		}
 	}
@@ -41,7 +41,7 @@ public map [loc, int] AnalyzeUnitComplexity(set[Declaration] decls)
 }
 
 // for each method check the complexity
-private map [loc, int] getCyclicComplexityMethod(Statement s){
+private int getCyclicComplexityMethod(Statement s){
 
 	// programmable: should exception handling be counted -> int = 1; if not int = 0;
 	int countExceptions = 1;
@@ -87,9 +87,7 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 		case \case(_): {
 			complexity += 1;
 		}
-		case \defaultCase(): {
-			complexity +=1;
-		}
+		// the default case does not add to the cyclomatic complexity
 		// add one complexity for each decision related to error handling
 		case \throw(_): {
 			complexity += countExceptions;
@@ -100,13 +98,10 @@ private map [loc, int] getCyclicComplexityMethod(Statement s){
 		case \try(_, _, _): {
 			complexity += countExceptions;
 		}
-		//case \catch(_,_): {
-		//	complexity += countExceptions;
-		//}
 		// find conditionals using the [ expr ? a : b ] structure
 		case \conditional(_,_,_): {
 			complexity += 1;
 		}		
 	}
-	return (s.src:complexity);
+	return complexity;
 }

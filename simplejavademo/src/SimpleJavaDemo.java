@@ -102,7 +102,7 @@ public class SimpleJavaDemo {
 		}
 		
 		// switch
-		// complexity + 3
+		// complexity + 2
 		switch(a){
 			case 12:
 				System.out.println("ok");

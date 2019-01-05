@@ -19,10 +19,10 @@ import Metrics::UnitTests;
 public void TestAll(){
 	// expected results
 	int vUnitSize = 85;
-	int vComplexity = 25;
+	int vComplexity = 24;
 	int vLOC = 92;
 	int vDuplicate = -1;
-	tuple[real v1, real v2] vUnitTest = <1.0/5.0, 2.0/24.0>;
+	tuple[real v1, real v2] vUnitTest = <1.0/5.0, 2.0/23.0>;
 
 	// initialise 
 	loc project = |project://SimpleJavaDemo|;	
