@@ -45,6 +45,52 @@ public void RunTestProgram(){
 	AnalyzeProject(|project://SimpleJavaDemo|,"Test Project");
 }
 
+public void RunVisualisations(){
+	println("******* START ANALYZE smallsql *********");
+	VisualizeProject(|project://smallsql|,"smallsql");
+}
+
+public void VisualizeProject(loc locProject, str projectName){
+	
+	//get AST
+	M3 m3Project = createM3FromEclipseProject(locProject);
+	set[loc] javaFiles = getFilesJava(locProject);
+	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
+	
+	// unit sizes
+	unitSizeMap = AnalyzeUnitSize(ASTDeclarations); 
+	unitSizeRisk = (a : GetUnitSizeRisk(unitSizeMap[a]) | a <- domain(unitSizeMap));
+	unitSizeRating = getRiskFactions(unitSizeMap, unitSizeRisk);
+	
+	int overalUnitSizeRating = GetUnitSizeRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
+	
+	// unit complexity
+	unitComplexityMap = AnalyzeUnitComplexity(ASTDeclarations);
+	unitComplexityRisk = (a : GetUnitComplexityRisk(unitComplexityMap[a]) | a <- domain(unitComplexityMap));
+	unitComplexityRating = getRiskFactions(unitSizeMap, unitComplexityRisk);
+	
+	// duplication
+	println("wip");
+	AnalyzeDuplicationAST(ASTDeclarations);
+
+	// compile map
+	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
+	map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel]] visuMap =();
+	// map structure: loc, unit size absolute, unit size relative,
+	// overal map is generated based on the domain of the unitsize map for now
+	println("resultaten");
+	
+	for(i <- domain(unitSizeMap)){
+		println("<i> and <unitSizeMap[i]>");
+		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i]>;
+		visuMap += (i:hulpTuple);
+		println(visuMap[i]);
+	}
+	
+	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
+
+}
+
 public void AnalyzeProject(loc locProject, str projectName)
 {
 	list[str] totalReport = [];
