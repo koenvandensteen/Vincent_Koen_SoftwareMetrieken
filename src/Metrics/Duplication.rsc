@@ -84,7 +84,7 @@ public map[list[str],list[tuple[loc location,int index]]] MapCodeOnDuplicationAS
 	codeMap = ();
 	map[loc, list[str]] strMap = ();
 	
-	int i = 0;
+	//int i = 0;
 	
 	for(file <- decls){
 	
@@ -111,13 +111,16 @@ public map[list[str],list[tuple[loc location,int index]]] MapCodeOnDuplicationAS
 		}
 		
 		// for-loop from original version
-		for(i <- [0..(size(strLst)-blockSize)])
+		if((size(strLst)-blockSize) > 0)
 		{
-			fileLines = strLst[i..i+blockSize];
-			if(fileLines in codeMap)
-				codeMap[fileLines]+=[<file.src,i>];
-			else
-				codeMap[fileLines]=[<file.src,i>];
+			for(i <- [0..(size(strLst)-blockSize)])
+			{
+				fileLines = strLst[i..i+blockSize];
+				if(fileLines in codeMap)
+					codeMap[fileLines]+=[<file.src,i>];
+				else
+					codeMap[fileLines]=[<file.src,i>];
+			}
 		}
 	}
 
