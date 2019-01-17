@@ -1,4 +1,4 @@
-**** analasys started at: $2018-12-18T17:26:58.287+00:00$
+**** analasys started at: $2019-01-13T20:32:15.685+00:00$
 total lines unfiltered: 39497
 total lines filtered: 24646
 **** line count SIG-rating: ++
@@ -8,14 +8,14 @@ percentage factionHigh unit sizes: 17.28%
 percentage factionModerate unit sizes: 21.22%
 **** unit size SIG-rating: --
 percentage factionExtreme risk units: 5.89%
-percentage factionLow risk units: 72.69%
-percentage factionHigh risk units: 12.54%
-percentage factionModerate risk units: 8.88%
+percentage factionLow risk units: 73.10%
+percentage factionHigh risk units: 12.40%
+percentage factionModerate risk units: 8.61%
 **** unit complexity SIG-rating: --
 total lines duplicated: 2540
 total lines duplicated percentage: 10.31%
 **** duplication SIG-rating: - 
-Test coverage based on assert count: 15.39% - risk factor: --
+Test coverage based on assert count: 15.65% - risk factor: --
 **** test coverage SIG-rating: --
 **** analysability: - 
 **** changeability: --
@@ -45,7 +45,7 @@ TOTAL|   |   |   |   |   ||--
 
 
 
-**** analys ended at: $2018-12-18T17:27:20.562+00:00$ and took 0 minutes 22 seconds 275 milliseconds 
+**** analys ended at: $2019-01-13T20:33:18.340+00:00$ and took 1 minutes 2 seconds 654 milliseconds 
 
 
 

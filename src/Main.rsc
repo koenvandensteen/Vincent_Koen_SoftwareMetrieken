@@ -57,6 +57,9 @@ public void VisualizeProject(loc locProject, str projectName){
 	set[loc] javaFiles = getFilesJava(locProject);
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
 	
+	// list to link locs with filenames
+	map [loc, str] fileTree = getLocsNames(ASTDeclarations);
+	
 	// unit sizes
 	unitSizeMap = AnalyzeUnitSize(ASTDeclarations); 
 	unitSizeRisk = (a : GetUnitSizeRisk(unitSizeMap[a]) | a <- domain(unitSizeMap));
@@ -71,20 +74,22 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	// duplication
 	println("wip");
-	AnalyzeDuplicationAST(ASTDeclarations);
+	//AnalyzeDuplicationAST(ASTDeclarations);
+	//test2
+	countDupsPerLoc(domain(fileTree), ASTDeclarations);
 
 	// compile map
 	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
 	map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel]] visuMap =();
 	// map structure: loc, unit size absolute, unit size relative,
-	// overal map is generated based on the domain of the unitsize map for now
+	// overal map is generated based on the domain of the filetree map for now
 	println("resultaten");
 	
-	for(i <- domain(unitSizeMap)){
-		println("<i> and <unitSizeMap[i]>");
+	for(i <- domain(fileTree)){
+		//println("<i> and <unitSizeMap[i]>");
 		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i]>;
 		visuMap += (i:hulpTuple);
-		println(visuMap[i]);
+		//println(visuMap[i]);
 	}
 	
 	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;

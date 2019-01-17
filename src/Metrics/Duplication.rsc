@@ -17,9 +17,24 @@ import Helpers::DataContainers;
 
 int blockSize = 6;
 
-public map[loc, int] AnalyzeDuplicationAST(set[Declaration] decls){
+public void dupDebug(){
+	println("******* START debug using smallsql *********");
+	loc locProject = |project://smallsql|;
+	
+	//get AST
+	M3 m3Project = createM3FromEclipseProject(locProject);
+	set[loc] javaFiles = getFilesJava(locProject);
+	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
 
-	map[list[str],list[tuple[loc location,int index]]] blockHashes = MapCodeOnDuplicationAST(decls);
+	int results = countDupsPerLoc(ASTDeclarations);
+}
+
+//public map[loc, int] countDupsPerLoc(set[Declaration] decls){
+public int countDupsPerLoc(set[Declaration] decls){
+
+	//map[list[str],list[tuple[loc location,int index]]] blockHashes = MapCodeOnDuplicationAST(decls);
+
+	map[list[str],list[tuple[loc location, int index]]] blockHashes = MapCodeOnDuplicationAST(decls);
 	
 	map[loc,list[int]] duplicationIndexList = ();
 	
@@ -62,7 +77,7 @@ public map[loc, int] AnalyzeDuplicationAST(set[Declaration] decls){
 			else
 			{
 				duplicationIndexList[blockHashes[codeMapKeys][0].location]=[blockHashes[codeMapKeys][0].index];
-				countDuplicateblocks+= (size(blockHashes[codeMapKeys])-1)*blockSize;
+				countDuplicateblocks+= (size(blockHashes[codeMapKeys]))*blockSize;
 				/*println("new block in non exisiting code location +<(size(blockHashes[codeMapKeys])-1)*blockSize> line");
 				println("found in <blockHashes[codeMapKeys][0].location> line");
 				println("code block found: <codeMapKeys>");*/
@@ -70,64 +85,71 @@ public map[loc, int] AnalyzeDuplicationAST(set[Declaration] decls){
 		}
 	}
 	
-	println("dup blocks: <countDuplicateblocks>");
-	
-	map [loc, int] temp = ();
-	return temp;
-
+	return countDuplicateblocks;
 
 }
 
-public map[list[str],list[tuple[loc location,int index]]] MapCodeOnDuplicationAST(set[Declaration] decls)
+public map[loc, int] AnalyzeDuplicationAST(set[Declaration] decls){
+	println("deprecated");
+	return countDupsPerLoc(decls);
+}
+
+//public map[list[str], list[loc]] MapCodeOnDuplicationAST(set[Declaration] decls)
+public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls)
 {
 
-	codeMap = ();
+	//println("aanpassen, geeft nu lines per file maar moet per methode worden. Hiervoor moet de stringlist wss in een stringmap aangepast worden die ook de m.src bij kan houden");
+
+	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
-	
-	//int i = 0;
 	
 	for(file <- decls){
 	
-		strLst = [];
+		strLst = [];	
+		list[tuple[loc location, list[str] strings]] strTup = [];
 		
-		println(file);
-		println("________");
-		
+		// visit file abstract syntax tree, create tuples of location and strings	
 		visit(file){
-			//
-			// methods are defined as either (tutor.rascal-mpl.org):
-			// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
-   			// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
-   			// we only consider type a since type b all seem to be abstract methods that do not add lines of code to the executable methods
-			case \method(_, _, _, _,Statement impl): {
-				strLst += (getStrFromStatement(impl));
+			// we consider methods...
+			case m: \method(_, _, _, _,Statement impl): {
+				strTup += <m.src,getStrFromStatement(impl)>;
 			}
-			// we also consider the constructors as these may contain elements that affect the complexity
+			// ... and constructors
 			case m: \constructor(_, _, _, Statement impl): {
-				strLst += (getStrFromStatement(impl));
+				strTup += <m.src,getStrFromStatement(impl)>;
 			}
-			//
-			
 		}
 		
-		// for-loop from original version
-		if((size(strLst)-blockSize) > 0)
-		{
-			for(i <- [0..(size(strLst)-blockSize)])
-			{
-				fileLines = strLst[i..i+blockSize];
-				if(fileLines in codeMap)
-					codeMap[fileLines]+=[<file.src,i>];
-				else
-					codeMap[fileLines]=[<file.src,i>];
+		//visit every element in the resulting tuple
+		for(i <- strTup){
+			//we are only interested in locations with more lines than the detection block limmit
+			if(size(i.strings)-blockSize >= 0){
+				//we check for each of these blocks if it is already in our codemap...
+				for(j <- [0..(size(i.strings)-blockSize)]){
+					fileLines = i.strings[j..j+blockSize];
+					if(fileLines in codeMap)
+						// ... and at the occurence if it is already there
+						codeMap[fileLines]+=[<i.location, j>];
+					else
+						//... or we add an entirely new entry if it isn't there yet!
+						codeMap[fileLines]=[<i.location,j>];
+				}
+			}
+		}	
+	}
+			
+	debugPrint = false;
+	
+	if(debugPrint){
+		for(i <- domain(codeMap)){
+			if(size(i) > 6 || size(codeMap[i])>1 ){
+				println("<i> (size: <size(i)>) has the following <size(codeMap[i])> locations: \n \n <codeMap[i]> \n ---------------");			
 			}
 		}
+		
+		println("There are <size(codeMap)> elements in the codemap");
 	}
-
-	println(size(codeMap));
-	//for(i < [0.. size(codeMap)]){
-		println(codeMap);
-	//}
+	
 	return codeMap;	
 }
 
@@ -226,8 +248,3 @@ public map[list[str],list[tuple[loc location,int index]]] MapCodeOnDuplication(p
 	
 	return codeMap;	
 }
-
-
-
-
-

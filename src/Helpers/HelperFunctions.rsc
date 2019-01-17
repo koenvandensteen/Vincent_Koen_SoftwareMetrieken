@@ -6,6 +6,8 @@ import List;
 import util::Resources;
 import util::Math;
 
+import lang::java::m3::AST;
+
 
 import IO;
 
@@ -80,4 +82,20 @@ public map[str, real] getRiskFactions(map [loc, int] metricMap, map [loc, int] r
 	factionExtreme = toReal(getRangeSum(extremeRisk))/metricSize;
 	
 	return ("factionLow":factionLow,"factionModerate":factionModerate,"factionHigh":factionHigh,"factionExtreme":factionExtreme);
+}
+
+public map[loc, str] getLocsNames(set[Declaration] decls){
+
+	map[loc, str] locNameList = ();
+
+	visit(decls){
+		case m: \method(_, _, _, _, _): {
+			locNameList += (m.src:m.name);
+		}
+		case m: \constructor(_, _, _, _): {
+			locNameList += (m.src:m.name);
+		}
+	}
+	
+	return locNameList;
 }
