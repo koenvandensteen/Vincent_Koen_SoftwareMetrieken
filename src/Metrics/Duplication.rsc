@@ -72,7 +72,7 @@ public map[loc, int] getLocs(map[loc, list[int]] mapIn){
 	int prev = 0;
 
 	// loop over full map
-	for(i <- domain(mapIn)){
+	for(i <- domain(mapIn)){	
 		// base value = block size
 		tmp = blockSize;
 		if(size(mapIn[i]) >= 2){
@@ -116,7 +116,13 @@ public map [loc, list[int]] getLocIndex(map[list[str],list[tuple[loc location, i
 	// cycle over full input map
 	for(i<-domain(blockHashes)){
 		// cycle over tuple list for element i
-		for(j <- blockHashes[i]){		
+		// debug to find locs based on given str (= step 2)
+		//if(i == ["{","try {","dropTable( AllTests.getConnection(), table );","} catch (SQLException ex) {","ex.printStackTrace();","}"])
+		//	println(blockHashes[i]);	
+		for(j <- blockHashes[i]){	
+			// debug to find specific str based on loc (= step 1)
+			//if(j.location == |project://smallsql/src/smallsql/junit/TestAlterTable2.java|(297,187,<20,4>,<26,5>))
+			//	println(i);	
 			if(j.location in retVal){
 				retVal[j.location] += [j.index];
 			}
@@ -133,7 +139,7 @@ public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declara
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
-	
+
 	for(file <- decls){
 	
 		strLst = [];	
@@ -156,14 +162,14 @@ public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declara
 			//we are only interested in locations with more lines than the detection block limmit
 			if(size(i.strings)-blockSize >= 0){
 				//we check for each of these blocks if it is already in our codemap...
-				for(j <- [0..(size(i.strings)-blockSize)]){
+				for(j <- [0..(size(i.strings)-blockSize+1)]){
 					fileLines = i.strings[j..j+blockSize];
 					if(fileLines in codeMap)
 						// ... and at the occurence if it is already there
 						codeMap[fileLines]+=[<i.location, j>];
 					else
 						//... or we add an entirely new entry if it isn't there yet!
-						codeMap[fileLines]=[<i.location,j>];
+						codeMap[fileLines]=[<i.location,j>];							
 				}
 			}
 		}	

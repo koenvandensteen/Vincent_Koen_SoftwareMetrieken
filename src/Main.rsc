@@ -74,8 +74,10 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	// duplication
 	println("wip");
-	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations);
-	relativeDuplication = getRelativeRate(unitSizeMap, duplicationMap);
+	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations); // this map can be printed to display absolute duplication (in loc)
+	relativeDuplication = getRelativeRate(unitSizeMap, duplicationMap); // this map can be printed to display relative loc (in % of code which is a duplicate)
+	
+	println("current data is all on method level, how/where do we calculate it on higher levels? (which should not be too hard)");
 
 
 	// compile map
@@ -105,6 +107,7 @@ private map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target)
 		if(i in target){
 			retVal[i] = toReal(target[i])/base[i];
 			println("target: <target[i]>/ LOC: <base[i]> = total: <retVal[i]>");
+			println(i);
 		}
 		else{
 			retVal[i] = 0.0;
