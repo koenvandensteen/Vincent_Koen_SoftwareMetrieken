@@ -74,9 +74,9 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	// duplication
 	println("wip");
-	//AnalyzeDuplicationAST(ASTDeclarations);
-	//test2
-	countDupsPerLoc(domain(fileTree), ASTDeclarations);
+	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations);
+	relativeDuplication = getRelativeRate(unitSizeMap, duplicationMap);
+
 
 	// compile map
 	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
@@ -94,6 +94,24 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
 
+}
+
+// calculates the relative quanitity of "target" using "base"
+private map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target){
+	
+	map[loc, real] retVal = ();
+	
+	for(i <- domain(base)){
+		if(i in target){
+			retVal[i] = toReal(target[i])/base[i];
+			println("target: <target[i]>/ LOC: <base[i]> = total: <retVal[i]>");
+		}
+		else{
+			retVal[i] = 0.0;
+		}
+	}
+	
+	return retVal;
 }
 
 public void AnalyzeProject(loc locProject, str projectName)
@@ -160,7 +178,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//duplication Metric
 	*/
-	int duplicatedLines = AnalyzeDuplication(filteredProject);
+	int duplicatedLines = getRangeSum(AnalyzeDuplicationAST(ASTDeclarations));
 	totalReport+=PrintAndReturnString("total lines duplicated: <duplicatedLines>");
 	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
 	totalReport+=PrintAndReturnString("total lines duplicated percentage: <round(duplicatePercentage,0.01)>%");

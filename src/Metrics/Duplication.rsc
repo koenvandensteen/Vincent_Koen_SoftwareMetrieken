@@ -10,6 +10,8 @@ import Relation;
 import Set;
 import String;
 
+import util::Math;
+
 import Helpers::HelperFunctions;
 import ListRelation;
 import Helpers::DataContainers;
@@ -26,79 +28,108 @@ public void dupDebug(){
 	set[loc] javaFiles = getFilesJava(locProject);
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
 
-	int results = countDupsPerLoc(ASTDeclarations);
+	map[loc, int]  results = AnalyzeDuplicationAST(ASTDeclarations);
+	
+	println(getRangeSum(results));
+}
+
+
+// call this function to get the result as a single integer
+public int AnalyzeDuplicationAST_int(set[Declaration] decls){
+	return getRangeSum(AnalyzeDuplicationAST(decls));
 }
 
 //public map[loc, int] countDupsPerLoc(set[Declaration] decls){
-public int countDupsPerLoc(set[Declaration] decls){
+public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 
-	//map[list[str],list[tuple[loc location,int index]]] blockHashes = MapCodeOnDuplicationAST(decls);
+	map[list[str],list[tuple[loc, int]]] blockHashes;
+	map[list[str],list[tuple[loc location, int index]]] blockHashesFiltered;
+	map[loc, list[int]] locIndexMap;
+	map[loc, int] dupLoc;
 
-	map[list[str],list[tuple[loc location, int index]]] blockHashes = MapCodeOnDuplicationAST(decls);
+	// get hashes of all strings with their locations
+	blockHashes = MapCodeOnDuplicationAST(decls);
+
+	// filter non duplicated entries
+	blockHashesFiltered = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
+
+	// get a map of indices of duplicated blocks for each loc
+	locIndexMap = getLocIndex(blockHashesFiltered);
 	
-	map[loc,list[int]] duplicationIndexList = ();
+	// sort indices in new map in asc order
+	locIndexMap = sortIndex(locIndexMap);
 	
-	int countDuplicateblocks = 0;
-	
-	for(codeMapKeys <- blockHashes)
-	{
-		//the block hash of the map has more then one occurance, so it is duplicated at least once.
-		if(size(blockHashes[codeMapKeys])>1)
-		{
-			/*
-			//this location has been added previously, we now have to check if it is a complete new block or
-			//an addional line
-			*/
-			if(blockHashes[codeMapKeys][0].location in duplicationIndexList)
-			{
-				if(IsIndexPresent(duplicationIndexList[blockHashes[codeMapKeys][0].location],blockHashes[codeMapKeys][0].index))
-				{
-					//our index was already present so altough this is a new block, its only counted as one addional line because
-					//we count one line at a time.
-					countDuplicateblocks+= size(blockHashes[codeMapKeys])-1;
-					/*println("already exisiting block +<size(blockHashes[codeMapKeys])-1> line");
-					println("found in <blockHashes[codeMapKeys][0].location> line");
-					println("code block found: <codeMapKeys>");*/
-				}
-				else
-				{
-					//this is a completely new block, so we add the block size completely.
-					countDuplicateblocks+= (size(blockHashes[codeMapKeys])-1)*blockSize;
-					/*println("new block in existing code location +<(size(blockHashes[codeMapKeys])-1)*blockSize> line");
-					println("found in <blockHashes[codeMapKeys][0].location> line");
-					println("code block found: <codeMapKeys>");*/
-				}
-				duplicationIndexList[blockHashes[codeMapKeys][0].location]+=[blockHashes[codeMapKeys][0].index];
+	// return lines of code (per loc)
+	return getLocs(locIndexMap);
+
+}
+
+public map[loc, int] getLocs(map[loc, list[int]] mapIn){
+
+	map[loc, int] retVal = ();
+
+	int tmp = 0;
+	int prev = 0;
+
+	// loop over full map
+	for(i <- domain(mapIn)){
+		// base value = block size
+		tmp = blockSize;
+		if(size(mapIn[i]) >= 2){
+			// by setting the first "previous" value for comparisson to the first one in the list we basicallly ignore it as it has no overlap
+			prev = mapIn[i][0]; 
+			// loop over indices
+			for(j <- mapIn[i]){
+				tmp += quantifyOverlap(prev, j);
+				prev = j;				
 			}
-			/*
-			//this location wasn't counted in at all, so we count the ammount of times the block appeared
-			//and multiply it times the size of our block size.
-			*/
-			else
-			{
-				duplicationIndexList[blockHashes[codeMapKeys][0].location]=[blockHashes[codeMapKeys][0].index];
-				countDuplicateblocks+= (size(blockHashes[codeMapKeys]))*blockSize;
-				/*println("new block in non exisiting code location +<(size(blockHashes[codeMapKeys])-1)*blockSize> line");
-				println("found in <blockHashes[codeMapKeys][0].location> line");
-				println("code block found: <codeMapKeys>");*/
-			}			
+		}
+		retVal += (i:tmp);
+	}
+	
+	return retVal;
+}
+
+//estimate based on two indices how many lines are overlapped (e.g. if i1 = 1 and i2 = 2 there are 2 unique lines (first of i1 and last of i2) and 5 overlapping lines, the total would be 7)
+public int quantifyOverlap(int a, int b){
+	i = max(a,b);
+	j = min(a,b);
+	
+	delta = i - j;
+	overlap = blockSize - delta;
+
+	if(overlap <= 0)
+		return blockSize; //2* blocksize if calculating for only these 2!
+	
+	return blockSize - overlap; //(overlap+2*delta);
+}
+
+public map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
+	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
+}
+
+
+public map [loc, list[int]] getLocIndex(map[list[str],list[tuple[loc location, int index]]] blockHashes){
+	
+	map [loc, list[int]] retVal = ();
+	
+	// cycle over full input map
+	for(i<-domain(blockHashes)){
+		// cycle over tuple list for element i
+		for(j <- blockHashes[i]){		
+			if(j.location in retVal){
+				retVal[j.location] += [j.index];
+			}
+			else{
+				retVal[j.location] = [j.index];
+			}
 		}
 	}
 	
-	return countDuplicateblocks;
-
+	return retVal;
 }
 
-public map[loc, int] AnalyzeDuplicationAST(set[Declaration] decls){
-	println("deprecated");
-	return countDupsPerLoc(decls);
-}
-
-//public map[list[str], list[loc]] MapCodeOnDuplicationAST(set[Declaration] decls)
-public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls)
-{
-
-	//println("aanpassen, geeft nu lines per file maar moet per methode worden. Hiervoor moet de stringlist wss in een stringmap aangepast worden die ook de m.src bij kan houden");
+public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls){
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
@@ -137,114 +168,10 @@ public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declara
 			}
 		}	
 	}
-			
-	debugPrint = false;
-	
-	if(debugPrint){
-		for(i <- domain(codeMap)){
-			if(size(i) > 6 || size(codeMap[i])>1 ){
-				println("<i> (size: <size(i)>) has the following <size(codeMap[i])> locations: \n \n <codeMap[i]> \n ---------------");			
-			}
-		}
-		
-		println("There are <size(codeMap)> elements in the codemap");
-	}
 	
 	return codeMap;	
 }
 
 private list[str] getStrFromStatement(Statement s){
 	return filteredFile = FilterSingleFile(s.src);
-}
-
-	
-public int AnalyzeDuplication(projectList)
-{	
-	map[list[str],list[tuple[loc location,int index]]] blockHashes = MapCodeOnDuplication(projectList);
-	
-	map[loc,list[int]] duplicationIndexList = ();
-	
-	int countDuplicateblocks = 0;
-	
-	for(codeMapKeys <- blockHashes)
-	{
-		//the block hash of the map has more then one occurance, so it is duplicated at least once.
-		if(size(blockHashes[codeMapKeys])>1)
-		{
-			/*
-			//this location has been added previously, we now have to check if it is a complete new block or
-			//an addional line
-			*/
-			if(blockHashes[codeMapKeys][0].location in duplicationIndexList)
-			{
-				if(IsIndexPresent(duplicationIndexList[blockHashes[codeMapKeys][0].location],blockHashes[codeMapKeys][0].index))
-				{
-					//our index was already present so altough this is a new block, its only counted as one addional line because
-					//we count one line at a time.
-					countDuplicateblocks+= size(blockHashes[codeMapKeys])-1;
-					/*println("already exisiting block +<size(blockHashes[codeMapKeys])-1> line");
-					println("found in <blockHashes[codeMapKeys][0].location> line");
-					println("code block found: <codeMapKeys>");*/
-				}
-				else
-				{
-					//this is a completely new block, so we add the block size completely.
-					countDuplicateblocks+= (size(blockHashes[codeMapKeys])-1)*blockSize;
-					/*println("new block in existing code location +<(size(blockHashes[codeMapKeys])-1)*blockSize> line");
-					println("found in <blockHashes[codeMapKeys][0].location> line");
-					println("code block found: <codeMapKeys>");*/
-				}
-				duplicationIndexList[blockHashes[codeMapKeys][0].location]+=[blockHashes[codeMapKeys][0].index];
-			}
-			/*
-			//this location wasn't counted in at all, so we count the ammount of times the block appeared
-			//and multiply it times the size of our block size.
-			*/
-			else
-			{
-				duplicationIndexList[blockHashes[codeMapKeys][0].location]=[blockHashes[codeMapKeys][0].index];
-				countDuplicateblocks+= (size(blockHashes[codeMapKeys])-1)*blockSize;
-				/*println("new block in non exisiting code location +<(size(blockHashes[codeMapKeys])-1)*blockSize> line");
-				println("found in <blockHashes[codeMapKeys][0].location> line");
-				println("code block found: <codeMapKeys>");*/
-			}			
-		}
-	}
-	
-	return countDuplicateblocks;
-}
-
-//We check here if our current index already is present within a previous added block index
-private bool IsIndexPresent(list[int] indexList,int index)
-{
-	for(i <- indexList)
-	{
-		if(index > i && index <= i + blockSize)
-			return true;
-	}
-	return false;
-}
-
-//This fucntion basically splits the code up into blocks of a determined block size, SIG suggests to take 6 as a duplicate 
-//treshhold we then place these values into a map which transform the list into a hashvalue
-//if we have a new ocuring we place a new entry in the map, else we add the location to our previous position.
-public map[list[str],list[tuple[loc location,int index]]] MapCodeOnDuplication(projectList)
-{
-
-	blockList = [];
-	codeMap = ();
-
-	for(file <- projectList)
-	{				
-		for(i <- [0..(size(file.stringList)-blockSize)])
-		{
-			fileLines = file.stringList[i..i+blockSize];
-			if(fileLines in codeMap)
-				codeMap[fileLines]+=[<file.location,i>];
-			else
-				codeMap[fileLines]=[<file.location,i>];
-		}
-	}	
-	
-	return codeMap;	
 }
