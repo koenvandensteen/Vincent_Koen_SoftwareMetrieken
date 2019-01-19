@@ -99,3 +99,42 @@ public map[loc, str] getLocsNames(set[Declaration] decls){
 	
 	return locNameList;
 }
+
+// calculates the relative quanitity of "target" using "base"
+public map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target){
+	
+	map[loc, real] retVal = ();
+	
+	for(i <- domain(base)){
+		if(i in target){
+			retVal[i] = round(toReal(target[i])/base[i]*100.0,0.01);
+		}
+		else{
+			retVal[i] = 0.0;
+		}
+	}
+	
+	return retVal;
+}
+
+
+// sees if junit.framework is imported in a class
+public bool isTestClass(Declaration d){
+	Declaration file;
+
+	visit(d) {  
+		// if everything was tested with junit, the first case below should have been enough
+		case \import(str name): {	
+			if( /.*junit.framework.*/ := name){
+				return true;
+			}
+		}
+		case \class(str name, _, _, _): {
+			if( /.*test.*/ := name || /.*Test.*/ := name){
+				return true;
+			}
+		}
+	}
+
+	return false;		
+}

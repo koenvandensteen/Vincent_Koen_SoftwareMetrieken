@@ -51,70 +51,123 @@ public void RunVisualisations(){
 }
 
 public void VisualizeProject(loc locProject, str projectName){
-	
+
 	//get AST
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	set[loc] javaFiles = getFilesJava(locProject);
+	
+	// analyze full project
+	AnalyzeProjectV2(javaFiles, false);
+
+	// analyze project without testcode
+	//AnalyzeProjectV2(javaFiles, true);
+	
+	println("we just got the results with tests included and without!");
+
+}
+
+public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){	
+
+	// create AST
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
+	set[Declaration] origDeclarations = ASTDeclarations; // we make this copy because for some functionality we still need the filtered data
+		
+	// filter test classes if required
+	if(noTest)
+		ASTDeclarations = {a | a <- origDeclarations, !isTestClass(a)};
 	
 	// list to link locs with filenames
 	map [loc, str] fileTree = getLocsNames(ASTDeclarations);
+
+	// total LOC
+	projectList filteredProject = FilterAllFiles(javaFiles);		
+	int filteredLineCount = GetTotalFilteredLOC(filteredProject);
+	// overal rating
+	int volumeRating = GetSigRatingLOC(filteredLineCount);
 	
 	// unit sizes
 	unitSizeMap = AnalyzeUnitSize(ASTDeclarations); 
 	unitSizeRisk = (a : GetUnitSizeRisk(unitSizeMap[a]) | a <- domain(unitSizeMap));
 	unitSizeRating = getRiskFactions(unitSizeMap, unitSizeRisk);
-	
+	// overal rating
 	int overalUnitSizeRating = GetUnitSizeRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
 	
 	// unit complexity
 	unitComplexityMap = AnalyzeUnitComplexity(ASTDeclarations);
 	unitComplexityRisk = (a : GetUnitComplexityRisk(unitComplexityMap[a]) | a <- domain(unitComplexityMap));
 	unitComplexityRating = getRiskFactions(unitSizeMap, unitComplexityRisk);
+	// overal rating
+	int overalComplexityRating = GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]);	
 	
 	// duplication
-	println("wip");
 	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations); // this map can be printed to display absolute duplication (in loc)
-	relativeDuplication = getRelativeRate(unitSizeMap, duplicationMap); // this map can be printed to display relative loc (in % of code which is a duplicate)
+	duplicationPercent = getRelativeRate(unitSizeMap, duplicationMap); // this map can be printed to display relative loc (in % of code which is a duplicate)
+	duplicationRating = (a:GetDuplicationRating(duplicationPercent[a]) | a <- domain(duplicationPercent));
+	// overal rating 
+	/* we use the range sum of unit sizes because the overal loc count includes code outside of methods/constructors 
+	while that code is not counter for the duplicaiton metric*/
+	int overalDuplicationRating = GetDuplicationRating((getRangeSum(duplicationMap)/getRangeSum(unitSizeMap))*100);
 	
-	println("current data is all on method level, how/where do we calculate it on higher levels? (which should not be too hard)");
+	// test coverage
+	tuple[real v1, real v2] unitTestCoverage = AnalyzeUnitTest(origDeclarations);
+	unitTestMap = AnalyzeUnitTestMap(origDeclarations);
+	// overal rating
+	int overalTestCoverageRating = getTestRating(unitTestCoverage.v2);
 
+	println("under here wip");
 
 	// compile map
 	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
-	map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel]] visuMap =();
-	// map structure: loc, unit size absolute, unit size relative,
-	// overal map is generated based on the domain of the filetree map for now
-	println("resultaten");
+	map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel, int uDuplAbs, int uDuplRel, int uTstCoverage]] visuMap =();
+	/* map structure: 
+	 - loc
+	 - total lines of code
+	 - unit size absolute
+	 - unit size relative
+	 - unit compelxity absolute
+	 - unit complexity relative
+	 - unit duplication absolute
+	 - unit duplication relative
+	 - unit test coverage
+	 in case of the 'absolute' variables these will represent the raw results. Displaying this will enable to see what the root causes are of a (bad) sig rating
+	 -> this means e.g. if all sig ratings are "++" all items can be colored green, there is no scaling or some similar process
+	 the 'relative' versions on the other hand will stretch the results based on the worst and best performers
+	 -> this means e.g. if all sig ratings are "++" the largest ones (= closest to a lower qualification) will be marked as red/orange/yellow . This enables to see which factors are the weakest
+	 test coverage only has one version
+	 -> test coverage is a bool (stored as int): 0 = method not tested, 1 = method tested
+	*/
 	
-	for(i <- domain(fileTree)){
-		//println("<i> and <unitSizeMap[i]>");
-		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i]>;
+	// overal map is generated based on the domain of the filetree map for now
+	int dupHelpMap = 0;
+	int dupHelpRating = 0;
+	int testHelper = 0;
+	for(i <- domain(fileTree)){		
+		if(i in duplicationMap){
+			dupHelpMap = duplicationMap[i];
+			dupHelpRating = duplicationRating[i];
+		}	
+		else{
+			dupHelpMap = 0;
+			dupHelpRating = 0;
+		}
+		
+		if(i in unitTestMap){
+			testHelper = unitTestMap[i];
+		}
+		else{
+			testHelper = 0;
+		}
+		
+		//hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
+		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], dupHelpMap, dupHelpRating, testHelper>;
 		visuMap += (i:hulpTuple);
+		println("method <i> has <visuMap[i]>");
 		//println(visuMap[i]);
 	}
 	
+	println("resultaten - return ook total loc en andere **algemene** sig resultaten"); // bv door: overalVars = <filteredLineCount, complexityRating>;
 	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
 
-}
-
-// calculates the relative quanitity of "target" using "base"
-private map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target){
-	
-	map[loc, real] retVal = ();
-	
-	for(i <- domain(base)){
-		if(i in target){
-			retVal[i] = toReal(target[i])/base[i];
-			println("target: <target[i]>/ LOC: <base[i]> = total: <retVal[i]>");
-			println(i);
-		}
-		else{
-			retVal[i] = 0.0;
-		}
-	}
-	
-	return retVal;
 }
 
 public void AnalyzeProject(loc locProject, str projectName)

@@ -15,20 +15,56 @@ import Map;
 import Helpers::HelperFunctions;
 import Metrics::UnitComplexity;
 
+// main method, returns two variables that describe the test coverage
 // based on sample from YouLearn (first few lines only)
 public tuple[real, real] AnalyzeUnitTest(set[Declaration] ASTDeclarations)
 {
-	// We do not want the complexity of the unit tests to be a factor in the test coverage, we need a separate complexity rating for just the main code
-	set[Declaration] pureDeclarations = {};
-
 	list[str] testedMethods = []; // list of methods in test classes that perform tests
-	list[str] projectMethods = [];// list of all other methods outside of test classes
-	int assertCount = 0; // amount of assert statements in test methods
-	int tested = 0; // amount of tested methods
-	int untested = 0; // amount of untested methods
 	int complexity = 0; // complexity of code excluding unit tests
+	map[loc, int] tstCount = ();// locs paired with a value 0 if untested or 1 if tested
 	tuple [real v1, real v2] result = <0.0, 0.0>; // result tuple, v1 is naive result using tested/untested method counts, v2 more accurate using asserts
 	
+	tuple[set[Declaration] pureDeclarations, map[loc, str] projectMethods, int assertCount, list[str] tM] helper = duplicateHelper(ASTDeclarations);
+	tstCount = AnalyzeUnitTestMap(ASTDeclarations);
+	
+	// get filtered cyclicComplexity
+	complexity = getRangeSum(AnalyzeUnitComplexity(helper.pureDeclarations));
+	// first real = naive approach 1 (method calls vs all methods using name matching), second real = assertCount/Complexity
+	result = <toReal(getRangeSum(tstCount))/size(helper.projectMethods),toReal(helper.assertCount)/complexity>;
+
+	return result;
+	
+}
+
+// returns a map with locations and a 1 (if the method has a matching call in a test file) or a zero (otherwise)
+public map[loc, int] AnalyzeUnitTestMap(set[Declaration] ASTDeclarations){
+
+	tuple[set[Declaration] pD, map[loc, str] projectMethods, int aC, list[str] testedMethods] helper = duplicateHelper(ASTDeclarations);
+
+	map [loc, int] tstCount = ();
+
+	//count code coverage
+	for(i <- domain(helper.projectMethods)){	
+		if(helper.projectMethods[i] in helper.testedMethods){
+			tstCount[i] = 1;
+		}
+		else{
+			tstCount[i] = 0;
+		}
+	}
+	
+	return tstCount;
+}
+
+// this helper method is created because the unit test module is approached in two distinct but intertwined ways. 
+// using the helper enables us to reuse code. The method itself generates four variables that are only used as intermediate results.
+private tuple[set[Declaration] pureDeclarations, map[loc, str] projectMethods, int assertCount, list[str] testedMethods] duplicateHelper(set[Declaration] ASTDeclarations){
+
+	set[Declaration] pureDeclarations = {}; // We do not want the complexity of the unit tests to be a factor in the test coverage, we need a separate complexity rating for just the main code
+	map[loc, str] projectMethods = ();
+	int assertCount = 0; // amount of assert statements in test methods
+	list[str] testedMethods = [];	
+
 	// fill lists
 	for(d <- ASTDeclarations){
 		// get test method calls and assert count
@@ -42,41 +78,48 @@ public tuple[real, real] AnalyzeUnitTest(set[Declaration] ASTDeclarations)
 			pureDeclarations += d;
 		}
 	}
-		
-	//count code coverage
-	for(i <- projectMethods){
-		if(i in testedMethods){
-			tested += 1;
-		}
-		else{
-			untested+=1;
-		}
-	}
 	
-	// get filtered cyclicComplexity
-	complexity = getRangeSum(AnalyzeUnitComplexity(pureDeclarations));
-	// first real = naive approach 1 (method calls vs all methods using name matching), second real = assertCount/Complexity
-	result = <toReal(tested)/size(projectMethods),toReal(assertCount)/complexity>;
-	
-	return result;
-	
+	return <pureDeclarations, projectMethods, assertCount, testedMethods>;
 }
 
+private map[str, loc] getMethodLocs(Declaration d){
 
-private list[str] getMethodsFromFile(Declaration d){
-	list[str] methods = [];
+	map[str, loc] retVal = ();
+
+	visit(d) {  
+		// methods are defined as either (tutor.rascal-mpl.org):
+		// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
+		// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
+		// we only consider type a since type b all seem to be abstract methods that do not add complexity
+		case m: \method(_, str name, _, _, _): {
+			retVal += (name:m.src);
+		}
+		// we also consider the constructors as these may contain elements that affect the complexity
+		case m: \constructor(_, str name, _, _): {
+			retVal += (name:m.src);
+		}
+	}
+
+	return retVal;
+
+}
+
+// returns a map of locations and the name for all methods in a declaration
+private map[loc, str] getMethodsFromFile(Declaration d){
+	map[loc, str] methods = ();
 	
 	visit(d) { 
-		case \method(_, str name, _, _, _): {
-			methods += name;
+		case m:\method(_, str name, _, _, _): {
+			methods += (m.src:name);
 		}
-		case \method(_, str name, _, _): {
-			methods += name;
+		case m:\method(_, str name, _, _): {
+			methods += (m.src:name);
 		}
 	}
 	return methods;
 }
 
+// returns all method calls found in a declaration
 private list[str] getTestCalls(Declaration d){
 	list[str] testCalls = [];
 	list[Statement] statList = [];
@@ -109,31 +152,12 @@ private list[str] getTestCalls(Declaration d){
 	return testCalls;
 }
 
-// sees if junit.framework is imported in a class
-private bool isTestClass(Declaration d){
-	Declaration file;
-
-	visit(d) {  
-		// if everything was tested with junit, the first case below should have been enough
-		case \import(str name): {	
-			if( /.*junit.framework.*/ := name){
-				return true;
-			}
-		}
-		case \class(str name, _, _, _): {
-			if( /.*test.*/ := name || /.*Test.*/ := name){
-				return true;
-			}
-		}
-	}
-
-	return false;		
-}
-
+// sees if a string indicates a test class/method
 private bool isTestName(str s){
 	return /test.*/ := s;
 }
 
+// counts assert statements in a declaration
 private int getAssertCount(Declaration d){
 	Declaration file;
 	int count = 0;

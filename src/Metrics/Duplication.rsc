@@ -64,85 +64,14 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 
 }
 
-public map[loc, int] getLocs(map[loc, list[int]] mapIn){
-
-	map[loc, int] retVal = ();
-
-	int tmp = 0;
-	int prev = 0;
-
-	// loop over full map
-	for(i <- domain(mapIn)){	
-		// base value = block size
-		tmp = blockSize;
-		if(size(mapIn[i]) >= 2){
-			// by setting the first "previous" value for comparisson to the first one in the list we basicallly ignore it as it has no overlap
-			prev = mapIn[i][0]; 
-			// loop over indices
-			for(j <- mapIn[i]){
-				tmp += quantifyOverlap(prev, j);
-				prev = j;				
-			}
-		}
-		retVal += (i:tmp);
-	}
-	
-	return retVal;
-}
-
-//estimate based on two indices how many lines are overlapped (e.g. if i1 = 1 and i2 = 2 there are 2 unique lines (first of i1 and last of i2) and 5 overlapping lines, the total would be 7)
-public int quantifyOverlap(int a, int b){
-	i = max(a,b);
-	j = min(a,b);
-	
-	delta = i - j;
-	overlap = blockSize - delta;
-
-	if(overlap <= 0)
-		return blockSize; //2* blocksize if calculating for only these 2!
-	
-	return blockSize - overlap; //(overlap+2*delta);
-}
-
-public map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
-	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
-}
-
-
-public map [loc, list[int]] getLocIndex(map[list[str],list[tuple[loc location, int index]]] blockHashes){
-	
-	map [loc, list[int]] retVal = ();
-	
-	// cycle over full input map
-	for(i<-domain(blockHashes)){
-		// cycle over tuple list for element i
-		// debug to find locs based on given str (= step 2)
-		//if(i == ["{","try {","dropTable( AllTests.getConnection(), table );","} catch (SQLException ex) {","ex.printStackTrace();","}"])
-		//	println(blockHashes[i]);	
-		for(j <- blockHashes[i]){	
-			// debug to find specific str based on loc (= step 1)
-			//if(j.location == |project://smallsql/src/smallsql/junit/TestAlterTable2.java|(297,187,<20,4>,<26,5>))
-			//	println(i);	
-			if(j.location in retVal){
-				retVal[j.location] += [j.index];
-			}
-			else{
-				retVal[j.location] = [j.index];
-			}
-		}
-	}
-	
-	return retVal;
-}
-
-public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls){
+// this method gets a list of strings combined with their occurences (as location and index in that location)
+private map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls){
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
 
 	for(file <- decls){
-	
-		strLst = [];	
+		
 		list[tuple[loc location, list[str] strings]] strTup = [];
 		
 		// visit file abstract syntax tree, create tuples of location and strings	
@@ -178,6 +107,73 @@ public map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declara
 	return codeMap;	
 }
 
+// this function basically inverts a map of strings (as keys) with locations+indices (as values) in order to get a list of indices per location
+private map [loc, list[int]] getLocIndex(map[list[str],list[tuple[loc location, int index]]] blockHashes){
+	
+	map [loc, list[int]] retVal = ();
+	
+	// cycle over full input map
+	for(i<-domain(blockHashes)){
+		// cycle over tuple list for element i and store in the retVal map	
+		for(j <- blockHashes[i]){	
+			if(j.location in retVal){
+				retVal[j.location] += [j.index];
+			}
+			else{
+				retVal[j.location] = [j.index];
+			}
+		}
+	}
+	return retVal;
+}
+
+// returns a list of strings from a statement (= method content in this case)
 private list[str] getStrFromStatement(Statement s){
 	return filteredFile = FilterSingleFile(s.src);
+}
+
+// this method returns a map of duplication for each location based on a map of indices of duplicated blocks for these locations
+private map[loc, int] getLocs(map[loc, list[int]] mapIn){
+
+	map[loc, int] retVal = ();
+
+	int tmp = 0;
+	int prev = 0;
+
+	// loop over full map
+	for(i <- domain(mapIn)){	
+		// base value = block size
+		tmp = blockSize;
+		if(size(mapIn[i]) >= 2){
+			// by setting the first "previous" value for comparisson to the first one in the list we basicallly ignore it as it has no overlap
+			prev = mapIn[i][0]; 
+			// loop over indices
+			for(j <- mapIn[i]){
+				tmp += quantifyOverlap(prev, j);
+				prev = j;				
+			}
+		}
+		retVal += (i:tmp);
+	}
+	
+	return retVal;
+}
+
+//estimate based on two indices how many lines are overlapped (e.g. if i1 = 1 and i2 = 2 there are 2 unique lines (first of i1 and last of i2) and 5 overlapping lines, the total would be 7)
+private int quantifyOverlap(int a, int b){
+	i = max(a,b);
+	j = min(a,b);
+	
+	delta = i - j;
+	overlap = blockSize - delta;
+
+	if(overlap <= 0)
+		return blockSize; //2* blocksize if calculating for only these 2!
+	
+	return blockSize - overlap; //(overlap+2*delta);
+}
+
+// sorts indices in ascending order in order to find the overlapping parts in later phases
+private map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
+	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
 }
