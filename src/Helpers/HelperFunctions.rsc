@@ -61,6 +61,15 @@ public int getRangeSum(map [loc, int] input){
 	return sum([input[a] | a <- domain(input)]);
 }
 
+// filters negative values
+public map[loc, int] getPositives(map [loc, int] input){
+
+	if(size(input) == 0)
+		return [];
+		
+	return (a:input[a] | a <- domain(input), input[a] >= 0);
+}
+
 
 public map[str, real] getRiskFactions(map [loc, int] metricMap, map [loc, int] risk){
 

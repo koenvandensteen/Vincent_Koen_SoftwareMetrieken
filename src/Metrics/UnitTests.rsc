@@ -26,7 +26,7 @@ public tuple[real, real] processUnitTestMap(map [loc, int] tstCount, set[Declara
 	tuple[set[Declaration] pureDeclarations, map[loc, str] projectMethods, int assertCount, list[str] tM, map[loc, str] tM2] helper = duplicateHelper(ASTDeclarations);
 
 	// tstCount returns test classes with "-1" as value, we do not wish to count these so filter those out
-	tstCountFilt = (a:tstCount[a] | a <- domain(tstCount), tstCount[a] > -1); 
+	tstCountFilt = (a:tstCount[a] | a <- domain(tstCount), tstCount[a] >= 0); 
 	// get filtered cyclicComplexity
 	complexity = getRangeSum(AnalyzeUnitComplexity(helper.pureDeclarations));
 	// first real = naive approach 1 (method calls vs all methods using name matching), second real = assertCount/Complexity
@@ -88,36 +88,6 @@ private tuple[set[Declaration] pureDeclarations, map[loc, str] projectMethods, i
 	
 	return <pureDeclarations, projectMethods, assertCount, testedMethods, testMethods>;
 }
-
-/*
-private map[str, loc] getMethodLocs(Declaration d){
-
-	map[str, loc] retVal = ();
-
-	visit(d) {  
-		// methods are defined as either (tutor.rascal-mpl.org):
-		// a: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl)
-		// b: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions)
-		// we only consider type a since type b all seem to be abstract methods that do not add complexity
-		case m: \method(_, str name, _, _, _): {
-			retVal += (name:m.src);
-		}
-		// we also consider the constructors as these may contain elements that affect the complexity
-		case m: \constructor(str name, _, _, _): {
-			retVal += (name:m.src);
-			println(m.src);
-		}
-		case m: \constructor(_, _, _, _): {
-			locNameList += (m.src:m.name);
-			println(m.src);
-			println(m.name);
-		}
-	}
-
-	return retVal;
-
-}
-*/
 
 // returns a map of locations and the name for all methods in a declaration
 private map[loc, str] getMethodsFromFile(Declaration d){

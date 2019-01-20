@@ -19,26 +19,6 @@ import Helpers::DataContainers;
 
 int blockSize = 6;
 
-public void dupDebug(){
-	println("******* START debug using smallsql *********");
-	loc locProject = |project://smallsql|;
-	
-	//get AST
-	M3 m3Project = createM3FromEclipseProject(locProject);
-	set[loc] javaFiles = getFilesJava(locProject);
-	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
-
-	map[loc, int]  results = AnalyzeDuplicationAST(ASTDeclarations);
-	
-	println(getRangeSum(results));
-}
-
-
-// call this function to get the result as a single integer
-public int AnalyzeDuplicationAST_int(set[Declaration] decls){
-	return getRangeSum(AnalyzeDuplicationAST(decls));
-}
-
 //public map[loc, int] countDupsPerLoc(set[Declaration] decls){
 public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 
@@ -51,12 +31,11 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 	// get hashes of all strings with their locations
 	<blockHashes, smallMethods> = MapCodeOnDuplicationAST(decls);
 	
-	// filter non duplicated entries
-	blockHashesFiltered = blockHashes;//(a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
-	//blockHashesEliminated = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])<2);
+	// filter non duplicated entries - not done at the moment, could lead to speed increases?
+	//blockHashes = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
 
 	// get a map of indices of duplicated blocks for each loc
-	locIndexMap = getLocIndex(blockHashesFiltered);
+	locIndexMap = getLocIndex(blockHashes);
 	
 	// sort indices in new map in asc order
 	locIndexMap = sortIndex(locIndexMap);
@@ -187,12 +166,13 @@ private map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
 	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
 }
 
+// adds "small" methods to map with "-1" as duplication count. Indicating these have not been tested
 private map[loc, int] addSmallMethods(map[loc, int] mapIn, list[loc] smallMethods){
 
 	retVal = mapIn;
 
 	for(i <- smallMethods){
-		retVal += (i:0);
+		retVal += (i:-1);
 	}
 	
 	return retVal;

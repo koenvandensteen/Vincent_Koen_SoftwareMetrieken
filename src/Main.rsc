@@ -79,36 +79,36 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	// list to link locs with filenames
 	map [loc, str] fileTree = getLocsNames(ASTDeclarations);
 
-	// total LOC
+	/* total LOC*/
 	projectList filteredProject = FilterAllFiles(javaFiles);		
 	int filteredLineCount = GetTotalFilteredLOC(filteredProject);
 	// overal rating
 	int volumeRating = GetSigRatingLOC(filteredLineCount);
 	
-	// unit sizes
+	/* unit sizes*/
 	unitSizeMap = AnalyzeUnitSize(ASTDeclarations); 
 	unitSizeRisk = (a : GetUnitSizeRisk(unitSizeMap[a]) | a <- domain(unitSizeMap));
 	unitSizeRating = getRiskFactions(unitSizeMap, unitSizeRisk);
 	// overal rating
 	int overalUnitSizeRating = GetUnitSizeRating(unitSizeRating["factionModerate"], unitSizeRating["factionHigh"], unitSizeRating["factionExtreme"]);
 	
-	// unit complexity
+	/* unit complexity*/
 	unitComplexityMap = AnalyzeUnitComplexity(ASTDeclarations);
 	unitComplexityRisk = (a : GetUnitComplexityRisk(unitComplexityMap[a]) | a <- domain(unitComplexityMap));
 	unitComplexityRating = getRiskFactions(unitSizeMap, unitComplexityRisk);
 	// overal rating
 	int overalComplexityRating = GetUnitComplexityRating(unitComplexityRating["factionModerate"], unitComplexityRating["factionHigh"], unitComplexityRating["factionExtreme"]);	
 	
-	// duplication
+	/* duplication */
 	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations); // this map can be printed to display absolute duplication (in loc)
 	duplicationPercent = getRelativeRate(unitSizeMap, duplicationMap); // this map can be printed to display relative loc (in % of code which is a duplicate)
 	duplicationRating = (a:GetDuplicationRating(duplicationPercent[a]) | a <- domain(duplicationPercent));
 	// overal rating 
 	/* we use the range sum of unit sizes because the overal loc count includes code outside of methods/constructors 
 	while that code is not counter for the duplicaiton metric*/
-	int overalDuplicationRating = GetDuplicationRating((getRangeSum(duplicationMap)/getRangeSum(unitSizeMap))*100);
+	int overalDuplicationRating = GetDuplicationRating((getRangeSum(getPositives(duplicationMap))/getRangeSum(unitSizeMap))*100);
 	
-	// test coverage
+	/* test coverage */
 	unitTestMap = AnalyzeUnitTestMap(origDeclarations);
 	tuple[real v1, real v2] unitTestCoverage = processUnitTestMap(unitTestMap, origDeclarations);;
 	// overal rating
@@ -136,15 +136,9 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	*/
 	
 	// overal map is generated based on the domain of the filetree map for now
-	int dupHelpMap = 0;
-	int dupHelpRating = 0;
-	int testHelper = 0;
-	int counter = 0;
 	for(i <- domain(fileTree)){		
 		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
 		visuMap += (i:hulpTuple);
-		//println("method <i> has <visuMap[i]>");
-		//println(visuMap[i]);
 	}
 	
 	println("resultaten - return ook total loc en andere **algemene** sig resultaten, als kleur?"); // bv door: overalVars = <filteredLineCount, complexityRating>;
@@ -216,7 +210,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//duplication Metric
 	*/
-	int duplicatedLines = getRangeSum(AnalyzeDuplicationAST(ASTDeclarations));
+	int duplicatedLines = getRangeSum(getPositives(AnalyzeDuplicationAST(ASTDeclarations)));
 	totalReport+=PrintAndReturnString("total lines duplicated: <duplicatedLines>");
 	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
 	totalReport+=PrintAndReturnString("total lines duplicated percentage: <round(duplicatePercentage,0.01)>%");
