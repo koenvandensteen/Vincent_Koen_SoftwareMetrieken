@@ -46,12 +46,14 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 	map[list[str],list[tuple[loc location, int index]]] blockHashesFiltered;
 	map[loc, list[int]] locIndexMap;
 	map[loc, int] dupLoc;
+	list[loc] smallMethods;
 
 	// get hashes of all strings with their locations
-	blockHashes = MapCodeOnDuplicationAST(decls);
-
+	<blockHashes, smallMethods> = MapCodeOnDuplicationAST(decls);
+	
 	// filter non duplicated entries
-	blockHashesFiltered = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
+	blockHashesFiltered = blockHashes;//(a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
+	//blockHashesEliminated = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])<2);
 
 	// get a map of indices of duplicated blocks for each loc
 	locIndexMap = getLocIndex(blockHashesFiltered);
@@ -59,16 +61,20 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 	// sort indices in new map in asc order
 	locIndexMap = sortIndex(locIndexMap);
 	
-	// return lines of code (per loc)
-	return getLocs(locIndexMap);
+	// get lines of code (per loc)
+	dupLoc = getLocs(locIndexMap);
+
+	 // combine with list of small, unanalysed methods
+	return addSmallMethods(dupLoc, smallMethods);
 
 }
 
-// this method gets a list of strings combined with their occurences (as location and index in that location)
-private map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declaration] decls){
+// this method gets a map of strings combined with their occurences (as location and index in that location) and a list of unprocessed locs (due to small sizes)
+private tuple[map[list[str], list[tuple[loc, int]]], list[loc]] MapCodeOnDuplicationAST(set[Declaration] decls){
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
+	list[loc] unused = [];
 
 	for(file <- decls){
 		
@@ -101,10 +107,13 @@ private map[list[str], list[tuple[loc, int]]] MapCodeOnDuplicationAST(set[Declar
 						codeMap[fileLines]=[<i.location,j>];							
 				}
 			}
+			else{
+				unused += i.location;
+			}
 		}	
 	}
 	
-	return codeMap;	
+	return <codeMap, unused>;	
 }
 
 // this function basically inverts a map of strings (as keys) with locations+indices (as values) in order to get a list of indices per location
@@ -176,4 +185,15 @@ private int quantifyOverlap(int a, int b){
 // sorts indices in ascending order in order to find the overlapping parts in later phases
 private map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
 	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
+}
+
+private map[loc, int] addSmallMethods(map[loc, int] mapIn, list[loc] smallMethods){
+
+	retVal = mapIn;
+
+	for(i <- smallMethods){
+		retVal += (i:0);
+	}
+	
+	return retVal;
 }

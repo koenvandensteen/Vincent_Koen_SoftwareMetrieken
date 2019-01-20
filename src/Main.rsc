@@ -60,7 +60,7 @@ public void VisualizeProject(loc locProject, str projectName){
 	AnalyzeProjectV2(javaFiles, false);
 
 	// analyze project without testcode
-	//AnalyzeProjectV2(javaFiles, true);
+	AnalyzeProjectV2(javaFiles, true);
 	
 	println("we just got the results with tests included and without!");
 
@@ -109,12 +109,10 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	int overalDuplicationRating = GetDuplicationRating((getRangeSum(duplicationMap)/getRangeSum(unitSizeMap))*100);
 	
 	// test coverage
-	tuple[real v1, real v2] unitTestCoverage = AnalyzeUnitTest(origDeclarations);
 	unitTestMap = AnalyzeUnitTestMap(origDeclarations);
+	tuple[real v1, real v2] unitTestCoverage = processUnitTestMap(unitTestMap, origDeclarations);;
 	// overal rating
 	int overalTestCoverageRating = getTestRating(unitTestCoverage.v2);
-
-	println("under here wip");
 
 	// compile map
 	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
@@ -141,31 +139,15 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	int dupHelpMap = 0;
 	int dupHelpRating = 0;
 	int testHelper = 0;
+	int counter = 0;
 	for(i <- domain(fileTree)){		
-		if(i in duplicationMap){
-			dupHelpMap = duplicationMap[i];
-			dupHelpRating = duplicationRating[i];
-		}	
-		else{
-			dupHelpMap = 0;
-			dupHelpRating = 0;
-		}
-		
-		if(i in unitTestMap){
-			testHelper = unitTestMap[i];
-		}
-		else{
-			testHelper = 0;
-		}
-		
-		//hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
-		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], dupHelpMap, dupHelpRating, testHelper>;
+		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
 		visuMap += (i:hulpTuple);
-		println("method <i> has <visuMap[i]>");
+		//println("method <i> has <visuMap[i]>");
 		//println(visuMap[i]);
 	}
 	
-	println("resultaten - return ook total loc en andere **algemene** sig resultaten"); // bv door: overalVars = <filteredLineCount, complexityRating>;
+	println("resultaten - return ook total loc en andere **algemene** sig resultaten, als kleur?"); // bv door: overalVars = <filteredLineCount, complexityRating>;
 	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
 
 }
@@ -245,7 +227,8 @@ public void AnalyzeProject(loc locProject, str projectName)
 	/*
 	//unit Test Rating metric
 	*/	
-	tuple[real v1, real v2] unitTestCoverage = AnalyzeUnitTest(ASTDeclarations);
+	unitTestMap = AnalyzeUnitTestMap(ASTDeclarations);
+	tuple[real v1, real v2] unitTestCoverage = processUnitTestMap(unitTestMap, ASTDeclarations);
 	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(getTestRating(unitTestCoverage.v1))>");
 	totalReport+=PrintAndReturnString("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(getTestRating(unitTestCoverage.v2))>");
 	// selected the more representative assert count method for further metrics
