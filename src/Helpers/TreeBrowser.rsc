@@ -42,6 +42,7 @@ public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] roo
 		
 		//debug	
 		//println(tm);
+		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 		return tm;
 	}
 	
@@ -60,7 +61,7 @@ public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] roo
 	//if(root.objData.objType == "class")
 	//if(root.objData.objType == "package")
 	//if(root.objData.objType == "project")
-	if(root.objData.objType == "project" || root.objData.objType == "package")
+	//if(root.objData.objType == "project" || root.objData.objType == "package")
 		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
 	return treeMap(root.location, root.objData, currentSig, currentGlobal, branches);
@@ -164,7 +165,7 @@ private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] 
 
 
 	factionsLoc = getOccurences(ratingList, 0);
-	factionsCompl = getOccurences(ratingList, 0);
+	factionsCompl = getOccurences(ratingList, 1);
 	percentageDup = getNewGlobalVars(globalList).Dup;
 	percentageTest = getNewGlobalVars(globalList).Cov;
 	
@@ -214,16 +215,12 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 		resMap[i[target]] += 1; 
 	}
 
-		
-	
+	// average out results
 	for(i <- domain(resMap)){
 		retVal += (i:toReal(resMap[i])/mapSize);
 	}
 	
-	//println("count <mapSize>");
-	//println(resMap);
-	//println(retVal);
-	
+	println(retVal);
 	
 	return(retVal);
 
