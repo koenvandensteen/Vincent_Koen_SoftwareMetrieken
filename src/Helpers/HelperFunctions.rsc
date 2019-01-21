@@ -147,3 +147,40 @@ public bool isTestClass(Declaration d){
 
 	return false;		
 }
+
+//gets the common path of a set of java files
+public str getCommonPath(set[loc] files){
+
+	map[loc, list[str]] substrings = ();
+	bool stillEqual = true;
+	str firstVal = "";
+	int counter = 0;
+	int minSize = -1;
+	str retVal = "";
+	
+	for(i <- files){
+		substrings += (i:split("/", i.path));
+		if(minSize == -1 || minSize > size(substrings))
+			minSize = size(substrings);
+	}
+	
+	while(stillEqual && counter <= minSize + 1){
+		for(i <- domain(substrings)){
+			if(firstVal == "")
+				firstVal = substrings[i][counter];
+				
+			stillEqual = (firstVal == substrings[i][counter]);
+
+		}
+		if(stillEqual){	
+			counter += 1;
+			if(retVal == "") // first assignment does not need the /
+				retVal = firstVal;
+			else if(!(firstVal == ""))
+				retVal = retVal + "/" + firstVal;
+			firstVal = "";	
+		}	
+	}
+	
+	return retVal;
+}

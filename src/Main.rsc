@@ -46,6 +46,8 @@ public void RunTestProgram(){
 }
 
 public void RunVisualisations(){
+	println("******* START ANALYZE JabberPoint *********");
+	VisualizeProject(|project://JabberPoint|,"JabberPoint");
 	println("******* START ANALYZE smallsql *********");
 	VisualizeProject(|project://smallsql|,"smallsql");
 }
@@ -55,21 +57,278 @@ public void VisualizeProject(loc locProject, str projectName){
 	//get AST
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	set[loc] javaFiles = getFilesJava(locProject);
+	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
+	
+	tuple[map[loc, str], int, map[loc, int], map[loc, int], map[loc, int], map[loc, int]] fullProjectResults;
+	tuple[map[loc, str], int, map[loc, int], map[loc, int], map[loc, int], map[loc, int]] noTestResults;
 	
 	// analyze full project
-	AnalyzeProjectV2(javaFiles, false);
+	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, false);
 
 	// analyze project without testcode
-	AnalyzeProjectV2(javaFiles, true);
+	//noTestResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, true);
+
+	str commonPath = getCommonPath(javaFiles);
+	
+	aggregateChildren(<locProject + commonPath, "project">, ASTDeclarations, fullProjectResults);
+	
+	//visitTree(ASTDeclarations, fullProjectResults);
+	//getOveralRatings(fullProjectResults);
+	
+	//createTreeMap(fullProjectResults);
+	//getOveralRatings(fullProjectResults);
+	
 	
 	println("we just got the results with tests included and without!");
 
 }
 
-public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){	
 
-	// create AST
-	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
+
+public int aggregateChildren(tuple[loc current, str inType] input, set[Declaration] AST, tuple[map[loc, str] tree, int lines, map[loc, int] uLoc, map[loc, int] uComp, map[loc, int] uDup, map[loc, int] uTest] workSet){
+	
+	int retVal = 0;
+	tuple[map[str, str] child, set[Declaration] newAST] children = <(), AST>;
+	
+	children = getChildren(input.current, input.inType, AST);
+	
+	// some projects are made without packages, we check if we are in the "package' level, if there are no packages we go to the next level
+	if(input.inType == "project" && size(children.child) <= 1)
+		children = getChildren(input.current, "package", AST);
+	
+	if(size(children.child) == 0){
+		println("todo, get one set of sig metrics");
+		return 1;
+	}
+	
+	retVal = 0;
+	
+	for(i <- domain(children.child)){
+		println(input.current+i);
+		retVal  += aggregateChildren(<input.current+i, children.child[i]>, children.newAST, workSet);
+		// above can return sig metrics of a deeper level, new sig metrics should be established based on that
+	}
+	
+	println("todo: proces matrix retVal");
+	
+	return retVal;
+}
+
+// below class gets the correct type of children. Unfortunately at the moment the entire AST is searched over and over
+// to increase efficiency the AST can be cut down to the relevant part only, 
+// previsions are made for (an AST is returned however at the moment this is the full AST) this and work on this field is a next improvement
+public tuple[map[str, str], set[Declaration]] getChildren(loc current, str inType, set[Declaration] AST){
+
+	map[str, str] packageMap = ();
+	map[str, str] classMap = ();
+	map[str, str] methodMap = ();
+	
+	switch(inType){
+		// projects have packages as children (if any)
+		case /project/:{
+			packageMap = getPackageMap(current, AST);
+			if(size(packageMap) > 0)
+				return <packageMap, AST>;
+			else
+				return <("":"package"), AST>;
+		}
+		// packages have classes as children
+		case /package/:{
+			classMap = getClassMap(current, AST);
+				return <classMap, AST>;
+		}
+		// classes have methods as children
+		case /class/:{
+			methodMap = getMethodMap(current, AST);
+				return <methodMap, AST>;
+		}
+		// methods do not have children
+		case /method/:{
+			return <(), AST>;
+		}
+	}
+	
+	// should never be reached!
+	return <(), AST>;
+
+}
+
+public map[str, str] getPackageMap(loc current, AST){
+
+	map[str, str] packageMap = ();
+
+	visit(AST){
+		case \package(Declaration parentPackage, str name):{
+			if(! (name in packageMap))
+				packageMap += (name:"package");		
+			}
+	}
+	
+	return packageMap;
+}
+
+// update to tuple[map[str, str], set[Declaration]]
+public map[str, str] getClassMap(loc current, AST){
+
+	map[str, str] classMap = ();
+
+	visit(AST){
+		case c: \class(str name, _, _, _):{
+				if((c.src).path == (current+(name+".java")).path)
+					classMap += (name+".java":"class");
+			}
+	}
+	
+	return classMap;
+}
+
+public map[str, str] getMethodMap(loc current, AST){
+
+	map[str, str] methodMap = ();
+
+	visit(AST){
+			case m: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl):{
+				if((m.src).path == (current.path))
+					methodMap += (name:"method");
+	    	}
+	    	case m: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions):{
+	    		if((m.src).path == (current.path))
+					methodMap += (name:"method");
+	    	}
+	    	case m: \constructor(str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl):{	
+		    	if((m.src).path == (current.path))
+					methodMap += (name:"method");
+			}
+		}
+		
+		
+	
+	return methodMap;
+}
+
+
+public void visitTree(set[Declaration] AST, tuple[map[loc, str] tree, int lines, map[loc, int] uLoc, map[loc, int] uComp, map[loc, int] uDup, map[loc, int] uTest] workSet){
+
+	
+	//map[loc, list[Declaration]] classMap = ();
+	list[str] classList = [];
+	list[str] methodList = []; // includes constructors!
+
+	// complete lists of all packages (if any) and classes
+	visit(AST){
+		case \package(Declaration parentPackage, str name):{
+			if(! (name in packageList))
+				packageList += name;		
+			}
+		case c: \class(str name, list[Type] extends, list[Type] implements, list[Declaration] body):
+			//classMap += (c.src:body);
+			classList += name;
+	}
+	
+	// we loop from the atomic method to the total project
+	// method is already known
+	// next step up are the classes
+	for(i <- classList){
+		println(i);
+	}
+	
+	
+	
+	
+	// loop all classes
+	/* requires the visit(ast) above to store the bodies
+	int testVar;
+	
+	for(i <- domain(classMap)){
+		visit(classMap[i]){
+			case m: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl):
+				methodList += m.src;
+	    	case m: \method(Type \return, str name, list[Declaration] parameters, list[Expression] exceptions):
+	    		methodList += m.src;
+	    	case m: \constructor(str name, list[Declaration] parameters, list[Expression] exceptions, Statement impl):	
+				methodList += m.src;
+		}
+		
+		testVar = 0;
+		for(j <- domain(workSet.tree)){
+			if(j in methodList){
+				//println("<j> has <workSet.uLoc[j]> lines of code");
+				testVar += workSet.uLoc[j];
+			}
+		}
+		//println("so class <i> has <testVar> lines");
+	}
+	*/
+	
+}
+
+
+/*
+public void createTreeMap(tuple[map[loc, str] treeMap, int tLoc, map[loc, int] uSize, map[loc, int] uCompl, map[loc, int] uDup, map[loc, int] uTest] workSet){
+	
+	for(i <- domain(workSet.treeMap)){
+		println(i);
+		1/0;
+	} 
+	
+	
+}
+
+public tuple[str, loc, SigRating, Content] createBranch(loc input){
+
+	str name;
+	str location;
+	SigRating sig;
+	Content cont;	
+	list[loc] stack = [];
+	
+	tuple[str, loc, SigRating, Content] retVal;
+	
+	// final "leaf", base case
+	if(isLeaf(input)){
+		println("leaf");
+		name = "aF";
+		location = "lF";
+		sig = [1, 1, 1, 1];
+		return <name, location, sig, cont>;
+	}
+	
+	//push root to stack
+	stack += input;
+	
+	// get children of current node
+	children = ();
+	
+	//process children
+	while(size(stack)>0){
+		//pop the first item and print it
+		tuple[loc head, list[loc] tail] current = pop(stack);
+		// get current data
+		retVal = <"a", toString(head), [1, 1, 1, 1], tail>;
+		
+		// add tail to stack
+		if(size(children > 0)){
+			for(i <- children){
+				push(i, tail);	
+			}
+		}
+	}
+
+	return <name, location, sig, cont>;
+}
+
+public list[loc] getChildren(loc input){
+
+}
+
+public bool isLeaf(){
+	return false;
+}
+*/
+
+public tuple[map[loc, str], int, map[loc, int], map[loc, int], map[loc, int], map[loc, int]]  AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
+
+	// copy input AST
 	set[Declaration] origDeclarations = ASTDeclarations; // we make this copy because for some functionality we still need the filtered data
 		
 	// filter test classes if required
@@ -115,8 +374,8 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	int overalTestCoverageRating = getTestRating(unitTestCoverage.v2);
 
 	// compile map
-	tuple [int uSizeAbs, int uSizeRel] hulpTuple;
-	map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel, int uDuplAbs, int uDuplRel, int uTstCoverage]] visuMap =();
+	//tuple [int uSizeAbs, int uSizeRel] hulpTuple;
+	//map[loc, tuple [int uSizeAbs, int uSizeRel, int uComplAbs, int uComplRel, int uDuplAbs, int uDuplRel, int uTstCoverage]] visuMap =();
 	/* map structure: 
 	 - loc
 	 - total lines of code
@@ -136,14 +395,15 @@ public void AnalyzeProjectV2(set[loc] javaFiles, bool noTest){
 	*/
 	
 	// overal map is generated based on the domain of the filetree map for now
-	for(i <- domain(fileTree)){		
-		hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
-		visuMap += (i:hulpTuple);
-	}
-	
-	println("resultaten - return ook total loc en andere **algemene** sig resultaten, als kleur?"); // bv door: overalVars = <filteredLineCount, complexityRating>;
-	tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
+	//for(i <- domain(fileTree)){		
+	//	hulpTuple = <unitSizeMap[i], unitSizeRisk[i], unitComplexityMap[i], unitComplexityRisk[i], duplicationMap[i], duplicationRating[i], unitTestMap[i]>;
+	//	visuMap += (i:hulpTuple);
+	//}
+	//
+	//println("resultaten - return ook total loc en andere **algemene** sig resultaten, als kleur?"); // bv door: overalVars = <filteredLineCount, complexityRating>;
+	//tuple [int totalSize, real uSizeRate, real uComplRate] overalScores;
 
+	return <fileTree, filteredLineCount, unitSizeMap, unitComplexityMap, duplicationMap, unitTestMap>;
 }
 
 public void AnalyzeProject(loc locProject, str projectName)
