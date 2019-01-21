@@ -114,10 +114,6 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 	unitTestMap = AnalyzeUnitTestMap(origDeclarations);
 	unitTestPercent = getRelativeRate(unitComplexityMap, unitTestMap);
 	unitTestRating = (a:getTestRating(unitTestPercent[a]) | a <- domain(unitTestPercent));
-	
-	for(i <- domain(unitComplexityMap)){
-		println("<unitTestMap[i]> / <unitComplexityMap[i]> = <unitTestPercent[i]>");
-	}
 
 	//unitTestRisk = (a:getTestRating(unitTestMap));
 

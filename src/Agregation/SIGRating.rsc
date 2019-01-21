@@ -74,7 +74,7 @@ public int GetUnitComplexityRisk(int complexity){
 // gets the overal rating of the program in the range [2; -2]
 public int GetUnitSizeRating(real mid, real high, real extreme){
 
-	println("mid: <mid> high: <high> extreme: <extreme>");
+	//println("mid: <mid> high: <high> extreme: <extreme>");
 	if(mid <= 0.40 && high < 0.1 && extreme < 0.01)
 		return 2;
 	if (mid <= 0.42 && high < 0.191 && extreme < 0.056){ //4* rating based on Tubit EVulation
