@@ -134,9 +134,13 @@ public int getTestRating(real coverage){
 		// high risk
 		return -1;
 	}
+	else if(coverage >= 0){
+		// high risk
+		return -1;
+	}
 	else {
-		// very high risk
-		return -2;
+		// negative percentages means this value is not processed
+		return -3;
 	}
 }
 

@@ -115,7 +115,7 @@ public map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target){
 	map[loc, real] retVal = ();
 	
 	for(i <- domain(base)){
-		if(i in target){
+		if(i in target && base[i] > 0){
 			retVal[i] = round(toReal(target[i])/base[i]*100.0,0.01);
 		}
 		else{

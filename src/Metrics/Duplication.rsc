@@ -172,7 +172,8 @@ private map[loc, int] addSmallMethods(map[loc, int] mapIn, list[loc] smallMethod
 	retVal = mapIn;
 
 	for(i <- smallMethods){
-		retVal += (i:-1);
+		// -3 means not analyzed
+		retVal += (i:-3);
 	}
 	
 	return retVal;
