@@ -7,33 +7,38 @@ import List;
 import IO;
 
 import Helpers::DataContainers;
+import Helpers::HelperFunctions;
 import Agregation::SIGRating;
 
-public TreeMap aggregateChildren(tuple[loc currentLoc, AnalyzedObject dataIn] input, set[Declaration] AST, Workset workset){
-	
-	list[TreeMap] branches = [];
-	TreeMap tm;
-	TreeMap result;
-	list[SIGRating] ratingList = [];
-
+public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] root, set[Declaration] AST, Workset workset){
 	
 	list[SIGRating] retVal = [];
+	list[SIGRating] ratingList = [];
+	list[GlobalVars] globalList = [];
+	map[tuple[loc, str], TreeMap] branches = ();
+	TreeMap tm;
+	TreeMap result;
 	tuple[map[loc, AnalyzedObject] objectMap, set[Declaration] newAST] children = <(), AST>;
+	
+	// set default values
 	SIGRating currentSig = <-3, -3, -3, -3>;
-
-	children = getChildren(input.currentLoc, input.dataIn.objType, AST);
+	GlobalVars currentGlobal = <0.0, 0.0, 0>;
+	
+	// get the sub-objects of the current object
+	children = getChildren(root.location, root.objData.objType, AST);
 	
 	// some projects are made without packages, we check if we are in the "package' level, if there are no packages we go to the next level
-	if(input.dataIn.objType == "project" && size(children.objectMap) <= 1)
-		children = getChildren(input.currentLoc, "package", AST);
+	if(root.objData.objType == "project" && size(children.objectMap) <= 1)
+		children = getChildren(root.location, "package", AST);
 	
 	// this is the base case of our recursive approach: the method level
-	if(size(children.objectMap) == 0 && input.dataIn.objType == "method"){
-	
-		if(input.currentLoc in workset)
-			currentSig = workset[input.currentLoc];
+	if(size(children.objectMap) == 0 && root.objData.objType == "method"){	
+		if(root.location in workset){
+			currentSig = workset[root.location].wRating;
+			currentGlobal = workset[root.location].wGlobal;	
+		}
 		
-		tm = treeMap(input.currentLoc, input.dataIn, currentSig, []);
+		tm = treeMap(root.location, root.objData, currentSig, currentGlobal, ());
 		
 		//debug	
 		//println(tm);
@@ -42,17 +47,23 @@ public TreeMap aggregateChildren(tuple[loc currentLoc, AnalyzedObject dataIn] in
 	
 	for(i <- domain(children.objectMap)){
 		result = aggregateChildren(<i, children.objectMap[i]>, children.newAST, workset);
-		branches  += result; // branches are where the recursive calculation takes place in this method
+		branches  += (<root.location, root.objData.objName>:result); // branches are where the recursive calculation takes place in this method
 		ratingList += result.rating; // we store the ratings of deeper objects seperately for easy calculation of a "global" sig
+		globalList += result.globalVars;
 	}
 	
-	//we determine one generalised rating for all elements
-	currentSig = aggregateSigList(ratingList);
+	//we determine one generalised rating for all elements, the coverage is recovered seperately to keep the "currentSig" var clean
+	currentSig = aggregateSigList(ratingList, globalList);
+	currentGlobal = getNewGlobalVars(globalList, root.location, root.objData.objType);
 	
 	//debug
-	//println("<input.currentLoc>, <input.dataIn>, <currentSig>");
+	//if(root.objData.objType == "class")
+	//if(root.objData.objType == "package")
+	//if(root.objData.objType == "project")
+	if(root.objData.objType == "project" || root.objData.objType == "package")
+		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
-	return treeMap(input.currentLoc, input.dataIn, currentSig, branches);
+	return treeMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
 
 // below class gets the correct type of children. Unfortunately at the moment the entire AST is searched over and over
@@ -68,10 +79,7 @@ private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc curren
 		// projects have packages as children (if any)
 		case /project/:{
 			packageMap = getPackageMap(current, AST);
-			//if(size(packageMap) > 0)
 				return <packageMap, AST>;
-			//else
-			//	return <(():"package"), AST>;
 		}
 		// packages have classes as children
 		case /package/:{
@@ -123,10 +131,6 @@ private map[loc, AnalyzedObject] getClassMap(loc current, AST){
 			}
 	}
 	
-	//for(i <- domain(classMap)){
-	//	println("class <i>");
-	//}
-	
 	return classMap;
 }
 
@@ -156,25 +160,23 @@ private map[loc, AnalyzedObject] getMethodMap(loc current, AST){
 
 
 //gets the overal rating of a component based on the risk factions of it's subcomponents
-private SIGRating aggregateSigList(list[SIGRating] ratingList){
+private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] globalList){
+
 
 	factionsLoc = getOccurences(ratingList, 0);
 	factionsCompl = getOccurences(ratingList, 0);
-	factionsDup = getOccurences(ratingList, 0);
-	factionsTest = getOccurences(ratingList, 0);
+	percentageDup = getNewGlobalVars(globalList).Dup;
+	percentageTest = getNewGlobalVars(globalList).Cov;
 	
 	// next rating for size needs factions of mid (0), high(-1) and extreme(-2)
 	int nextLocRating = GetUnitSizeRating(factionsLoc[0], factionsLoc[-1], factionsLoc[-2]);
 	// next rating for complexity needs factions of mid (0), high(-1) and extreme(-2)
 	int nextCompRating = GetUnitComplexityRating(factionsCompl[0], factionsCompl[-1], factionsCompl[-2]);
-	// next rating for duplication needs ???
-	println("to do: agregate duplication ratings");
-	int nextDupRating = -3;
-	//
-	println("to do: agregate test coverage ratings");
-	int nextTestRating = -3;
+	// next rating for duplication needs a percentage of duplication, we achieve this by averaging the list of earlier percentages
+	int nextDupRating = GetDuplicationRating(percentageDup);
+	// next rating for test coverage needs a percentage of coverage, we achieve this by averaging the list of earlier percentages
+	int nextTestRating = getTestRating(percentageTest);
 
-	println("placeholder");
 	return <nextLocRating, nextCompRating, nextDupRating, nextTestRating>;
 }
 
@@ -190,19 +192,29 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 	
 	map[int, real] retVal = ();
 	
-	//map[str targetType, map[int, int]] retVal = ();
-	//retVal
+		
+	// get the size of the map to find the relative amounts later on
+	int mapSize = size(ratingList);
+	
+	// during testing a bug became clear when a package is nested in another package
+	// until we arive at the point to fix this we ignor the problem bij returning an empty map
+	if(mapSize == 0){
+		retVal += (2:0.0);
+		retVal += (1:0.0);
+		retVal += (0:0.0);
+		retVal += (-1:0.0);
+		retVal += (-2:0.0);
+		retVal += (-3:0.0);
+		return (retVal);
+
+	}
 
 	// count occurences
 	for(i <- ratingList){
-		//println("full <i>");
-		//println("target <i.uLoc>");
-		//println("target <i[0]>");
 		resMap[i[target]] += 1; 
 	}
-	
-	// get relative amount
-	int mapSize = size(ratingList);
+
+		
 	
 	for(i <- domain(resMap)){
 		retVal += (i:toReal(resMap[i])/mapSize);
@@ -217,3 +229,38 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 
 }
 
+private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[real DupIn, real CovIn, int LinesIn]] valIn){
+	int tupSize = 0;
+	real dup = 0.0;
+	real cov = 0.0;
+	int lines = 0;
+	
+	for(i <- valIn){
+		dup += i.DupIn;
+		cov += i.CovIn;
+		lines += i.LinesIn;
+	}
+	
+	tupSize = size(valIn);
+	
+	// during testing a bug became clear when a package is nested in another package
+	// until we arive at the point to fix this we ignor the problem bij returning zero values
+	if(tupSize == 0)
+		return <-1.0, -1.0, -1>;
+	
+	return <dup/tupSize, cov/tupSize, lines>;
+}
+
+// overloaded version of previous method for when location is known (more accurate) and the object type is a class (otherwise not all files may be read)
+private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[real DupIn, real CovIn, int LinesIn]] valIn, loc location, str objType){
+	// get other vars
+	tuple[real Dup, real Cov, int CL] retVal = getNewGlobalVars(valIn);
+	// single out code line count of original method
+	int codeLines = retVal.CL;
+	
+	// overwrite loc only if the current object is a class
+	if(objType == "class")
+		codeLines = size(FilterSingleFile(location)); // get loc
+	
+	return <retVal.Dup, retVal.Cov, codeLines>;
+}

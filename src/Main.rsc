@@ -118,10 +118,13 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 	//unitTestRisk = (a:getTestRating(unitTestMap));
 
 	// generate overview map
-	SIGRating temp = <-3, -3, -3, -3>;
+	SIGRating tempSig = <-3, -3, -3, -3>;
+	GlobalVars tempGlob = <0.0, 0.0, 0>;
 	Workset workset = ();
 	for(i <- domain(fileTree)){
-		workset += (i:<unitSizeRisk[i], unitComplexityRisk[i], duplicationRating[i], unitTestMap[i]>);
+		tempSig = <unitSizeRisk[i], unitComplexityRisk[i], duplicationRating[i], unitTestMap[i]>;
+		tempGlob = <duplicationPercent[i], unitTestPercent[i], unitSizeMap[i]>;
+		workset += (i:<tempSig,tempGlob>);
 	}
 
 	return workset;
