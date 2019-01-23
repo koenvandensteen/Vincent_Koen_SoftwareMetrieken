@@ -9,4 +9,4 @@ alias GlobalVars =  tuple[real dupPercent, real testPercent, int lineCount];
 alias Workset = map[loc wLocation, tuple[SIGRating wRating, GlobalVars wGlobal] wData];
 
 //datatypes
-data TreeMap = treeMap(loc location, AnalyzedObject abj, SIGRating rating, GlobalVars globalVars, map[tuple[loc, str], TreeMap] children);
+data BrowsableMap = browsableMap(loc location, AnalyzedObject abj, SIGRating rating, GlobalVars globalVars, map[tuple[loc, str], BrowsableMap] children);

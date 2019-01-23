@@ -117,7 +117,7 @@ public int GetUnitSizeRisk(int unitSize){
 }
 
 // gets the test Risk of a method in the range [2; -2]
-public int getTestRating(real coverage){
+public int GetTestRating(real coverage){
 	if(coverage > 0.95) {
 		// low risk
 		return 2;

@@ -77,7 +77,7 @@ public void VisualizeProject(loc locProject, str projectName){
 	//visitTree(ASTDeclarations, fullProjectResults);
 	//getOveralRatings(fullProjectResults);
 	
-	//createTreeMap(fullProjectResults);
+	//createBrowsableMap(fullProjectResults);
 	//getOveralRatings(fullProjectResults);
 	
 	
@@ -113,9 +113,9 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 	/* test coverage */
 	unitTestMap = AnalyzeUnitTestMap(origDeclarations);
 	unitTestPercent = getRelativeRate(unitComplexityMap, unitTestMap);
-	unitTestRating = (a:getTestRating(unitTestPercent[a]) | a <- domain(unitTestPercent));
+	unitTestRating = (a:GetTestRating(unitTestPercent[a]) | a <- domain(unitTestPercent));
 
-	//unitTestRisk = (a:getTestRating(unitTestMap));
+	//unitTestRisk = (a:GetTestRating(unitTestMap));
 
 	// generate overview map
 	SIGRating tempSig = <-3, -3, -3, -3>;
@@ -158,7 +158,7 @@ public void AnalyzeGlobal(){
 	/* test coverage */
 	tuple[real v1, real v2] unitTestCoverage = processUnitTestMap(unitTestMap, origDeclarations);;
 	// overal rating
-	int overalTestCoverageRating = getTestRating(unitTestCoverage.v2);
+	int overalTestCoverageRating = GetTestRating(unitTestCoverage.v2);
 	
 	/* duplication */
 	duplicationMap = AnalyzeDuplicationAST(ASTDeclarations); // this map can be printed to display absolute duplication (in loc)
@@ -248,10 +248,10 @@ public void AnalyzeProject(loc locProject, str projectName)
 	*/	
 	unitTestMap = AnalyzeUnitTestMap(ASTDeclarations);
 	tuple[real v1, real v2] unitTestCoverage = processUnitTestMap(unitTestMap, ASTDeclarations);
-	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(getTestRating(unitTestCoverage.v1))>");
-	totalReport+=PrintAndReturnString("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(getTestRating(unitTestCoverage.v2))>");
+	println("Naive test coverage based on method pairing: <round(unitTestCoverage.v1*100,0.01)>% - risk factor:<transFormSIG(GetTestRating(unitTestCoverage.v1))>");
+	totalReport+=PrintAndReturnString("Test coverage based on assert count: <round(unitTestCoverage.v2*100,0.01)>% - risk factor: <transFormSIG(GetTestRating(unitTestCoverage.v2))>");
 	// selected the more representative assert count method for further metrics
-	int unitTestingRating = getTestRating(unitTestCoverage.v2);
+	int unitTestingRating = GetTestRating(unitTestCoverage.v2);
 	totalReport+=PrintAndReturnString("**** test coverage SIG-rating: <transFormSIG(unitTestingRating)>");
 	println("\n");
 	

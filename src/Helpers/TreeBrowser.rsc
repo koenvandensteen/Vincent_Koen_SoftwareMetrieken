@@ -10,14 +10,14 @@ import Helpers::DataContainers;
 import Helpers::HelperFunctions;
 import Agregation::SIGRating;
 
-public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] root, set[Declaration] AST, Workset workset){
+public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData] root, set[Declaration] AST, Workset workset){
 	
 	list[SIGRating] retVal = [];
 	list[SIGRating] ratingList = [];
 	list[GlobalVars] globalList = [];
-	map[tuple[loc, str], TreeMap] branches = ();
-	TreeMap tm;
-	TreeMap result;
+	map[tuple[loc, str], BrowsableMap] branches = ();
+	BrowsableMap projectTree;
+	BrowsableMap result;
 	tuple[map[loc, AnalyzedObject] objectMap, set[Declaration] newAST] children = <(), AST>;
 	
 	// set default values
@@ -38,14 +38,14 @@ public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] roo
 			currentGlobal = workset[root.location].wGlobal;	
 		}
 		
-		tm = treeMap(root.location, root.objData, currentSig, currentGlobal, ());
+		projectTree = browsableMap(root.location, root.objData, currentSig, currentGlobal, ());
 		
 		//debug	
-		//println(tm);
-		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
-		return tm;
+		//println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
+		return projectTree;
 	}
 	
+	// recursive step, call this function for all the results
 	for(i <- domain(children.objectMap)){
 		result = aggregateChildren(<i, children.objectMap[i]>, children.newAST, workset);
 		branches  += (<root.location, root.objData.objName>:result); // branches are where the recursive calculation takes place in this method
@@ -64,7 +64,7 @@ public TreeMap aggregateChildren(tuple[loc location, AnalyzedObject objData] roo
 	//if(root.objData.objType == "project" || root.objData.objType == "package")
 		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
-	return treeMap(root.location, root.objData, currentSig, currentGlobal, branches);
+	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
 
 // below class gets the correct type of children. Unfortunately at the moment the entire AST is searched over and over
@@ -103,6 +103,7 @@ private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc curren
 
 }
 
+//returns all packages for a location
 private map[loc, AnalyzedObject] getPackageMap(loc current, AST){
 
 	map[loc, AnalyzedObject] packageMap = ();
@@ -119,7 +120,7 @@ private map[loc, AnalyzedObject] getPackageMap(loc current, AST){
 	return packageMap;
 }
 
-// update to tuple[map[str, str], set[Declaration]]
+// returns a list of classes for a location
 private map[loc, AnalyzedObject] getClassMap(loc current, AST){
 
 	map[loc, AnalyzedObject] classMap = ();
@@ -135,6 +136,7 @@ private map[loc, AnalyzedObject] getClassMap(loc current, AST){
 	return classMap;
 }
 
+// gets all methods in a location
 private map[loc, AnalyzedObject] getMethodMap(loc current, AST){
 
 	map[loc, AnalyzedObject] methodMap = ();
@@ -163,24 +165,42 @@ private map[loc, AnalyzedObject] getMethodMap(loc current, AST){
 //gets the overal rating of a component based on the risk factions of it's subcomponents
 private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] globalList){
 
-
+	//get new ratings
 	factionsLoc = getOccurences(ratingList, 0);
 	factionsCompl = getOccurences(ratingList, 1);
 	percentageDup = getNewGlobalVars(globalList).Dup;
 	percentageTest = getNewGlobalVars(globalList).Cov;
 	
+	// for each metric, get the best current rating as the new rating cannot be higher than this
+	//maxRatings = getMaxSig(ratingList);
+	
 	// next rating for size needs factions of mid (0), high(-1) and extreme(-2)
 	int nextLocRating = GetUnitSizeRating(factionsLoc[0], factionsLoc[-1], factionsLoc[-2]);
+	//int nextLocRating = max(GetUnitSizeRating(factionsLoc[0], factionsLoc[-1], factionsLoc[-2]),maxRatings.uLoc);
 	// next rating for complexity needs factions of mid (0), high(-1) and extreme(-2)
 	int nextCompRating = GetUnitComplexityRating(factionsCompl[0], factionsCompl[-1], factionsCompl[-2]);
+	//int nextCompRating = max(GetUnitComplexityRating(factionsCompl[0], factionsCompl[-1], factionsCompl[-2]),maxRatings.uDup);
 	// next rating for duplication needs a percentage of duplication, we achieve this by averaging the list of earlier percentages
 	int nextDupRating = GetDuplicationRating(percentageDup);
+	//int nextDupRating = max(GetDuplicationRating(percentageDup),maxRatings.uDup);
 	// next rating for test coverage needs a percentage of coverage, we achieve this by averaging the list of earlier percentages
-	int nextTestRating = getTestRating(percentageTest);
+	int nextTestRating = GetTestRating(percentageTest);
+	//int nextTestRating = max(GetTestRating(percentageTest),maxRatings.uTest);
 
 	return <nextLocRating, nextCompRating, nextDupRating, nextTestRating>;
 }
 
+// gets the maximum ratings for each metric in a SIGRating object
+private SIGRating getMaxSig(list[SIGRating] ratingList){
+	maxLoc = max(ratingList.uLoc);
+	maxComp = max(ratingList.uComp);
+	maxDup = max(ratingList.uDup);
+	maxTest = max(ratingList.uTest);
+	
+	return <maxLoc, maxComp, maxDup, maxTest>;
+}
+
+// calculates how often a specific value for a metric occurs in a list of ratings relative to the total amount of ratings
 private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 	
 	map[int rating, int occurences] resMap = ();
@@ -220,12 +240,15 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 		retVal += (i:toReal(resMap[i])/mapSize);
 	}
 	
-	println(retVal);
+	//debug
+	//println(retVal);
 	
 	return(retVal);
 
 }
 
+// calculates the new duplication count, test coverage and global line count based on a list of these values for smaller code units
+// (e.g. when this is calculated for a class, all methods are taken into account)
 private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[real DupIn, real CovIn, int LinesIn]] valIn){
 	int tupSize = 0;
 	real dup = 0.0;
