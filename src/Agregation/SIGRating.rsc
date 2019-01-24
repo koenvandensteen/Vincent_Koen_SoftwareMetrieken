@@ -20,13 +20,13 @@ public int GetSigRatingLOC(int LOC)
 
 public int GetDuplicationRating(num duplicationPercentage)
 {
-	if(duplicationPercentage < 3)
+	if(duplicationPercentage < 0.03)
 		return 2;
-	else if(duplicationPercentage < 5)
+	else if(duplicationPercentage < 0.05)
 		return 1;
-	else if(duplicationPercentage < 10)
+	else if(duplicationPercentage < 0.10)
 		return 0;
-	else if(duplicationPercentage < 20)
+	else if(duplicationPercentage < 0.20)
 		return -1;
 	else
 		return -2;
