@@ -50,11 +50,15 @@ public void RunTestProgram(){
 	AnalyzeProject(|project://SimpleJavaDemo|,"Test Project");
 }
 
-public void RunVisualisations(){
-	println("******* START ANALYZE JabberPoint *********");
-	VisualizeProject(|project://Jabberpoint|,"Jabberpoint");
-	//println("******* START ANALYZE smallsql *********");
-	//VisualizeProject(|project://smallsql|,"smallsql");
+public void RunVisualisations(int i){
+	if(i == 1 || i == 3){
+		println("******* START ANALYZE JabberPoint *********");
+		VisualizeProject(|project://JabberPoint|,"Jabberpoint");
+	}
+	if(i == 2 || i == 3){
+		println("******* START ANALYZE smallsql *********");
+		VisualizeProject(|project://smallsql|,"smallsql");
+	}
 }
 
 public void VisualizeProject(loc locProject, str projectName){
@@ -84,7 +88,7 @@ public void VisualizeProject(loc locProject, str projectName){
 	//createBrowsableMap(fullProjectResults);
 	//getOveralRatings(fullProjectResults);
 	
-	//println("endResult: <endResult>");
+	println("endResult: <endResult>");
 	//println("we just got the results with tests included and without!");
 	ShowTreeMap(endResult);
 }

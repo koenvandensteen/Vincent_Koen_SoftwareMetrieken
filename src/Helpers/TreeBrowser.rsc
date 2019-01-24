@@ -18,7 +18,7 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	map[tuple[loc, str], BrowsableMap] branches = ();
 	BrowsableMap projectTree;
 	BrowsableMap result;
-	tuple[map[loc, AnalyzedObject] objectMap, set[Declaration] newAST] children = <(), AST>;
+	tuple[map[loc childLoc, AnalyzedObject childObj] objectMap, set[Declaration] newAST] children = <(), AST>;
 	
 	// set default values
 	SIGRating currentSig = <-3, -3, -3, -3>;
@@ -44,11 +44,15 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 		//println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 		return projectTree;
 	}
-	
+
+	println();
+	println("---- new for loop -----");
+	println();
 	// recursive step, call this function for all the results
 	for(i <- domain(children.objectMap)){
 		result = aggregateChildren(<i, children.objectMap[i]>, children.newAST, workset);
-		branches  += (<root.location, root.objData.objName>:result); // branches are where the recursive calculation takes place in this method
+		branches  += (<i, children.objectMap[i].objName>:result); // branches are where the recursive calculation takes place in this method
+		//println("current <root.location> branches <branches>");
 		ratingList += result.rating; // we store the ratings of deeper objects seperately for easy calculation of a "global" sig
 		globalList += result.globalVars;
 	}
@@ -61,8 +65,8 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	//if(root.objData.objType == "class")
 	//if(root.objData.objType == "package")
 	//if(root.objData.objType == "project")
-	if(root.objData.objType == "project" || root.objData.objType == "package")
-		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
+	//if(root.objData.objType == "project" || root.objData.objType == "package")
+	//	println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
 	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
@@ -110,9 +114,7 @@ private map[loc, AnalyzedObject] getPackageMap(loc current, AST){
 	map[loc, AnalyzedObject] packageMap = ();
 	
 	for(i <- current.ls){
-		//println("name = <i.file>");
 		if(isDirectory(i)){
-			println("package <i.file>");
 			packageMap += (i:<i.file,"package">);
 		}
 		if(isFile(i))
