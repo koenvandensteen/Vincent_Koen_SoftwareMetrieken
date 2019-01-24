@@ -27,6 +27,9 @@ import Agregation::SIGRating;
 
 import util::Math;
 
+import View::TreeView;
+
+
 public void AnalyzeAllProjects()
 {
 	println("******* START ANALYZE JABBERPOINT *********");
@@ -49,9 +52,9 @@ public void RunTestProgram(){
 
 public void RunVisualisations(){
 	println("******* START ANALYZE JabberPoint *********");
-	VisualizeProject(|project://JabberPoint|,"JabberPoint");
-	println("******* START ANALYZE smallsql *********");
-	VisualizeProject(|project://smallsql|,"smallsql");
+	VisualizeProject(|project://Jabberpoint|,"Jabberpoint");
+	//println("******* START ANALYZE smallsql *********");
+	//VisualizeProject(|project://smallsql|,"smallsql");
 }
 
 public void VisualizeProject(loc locProject, str projectName){
@@ -66,13 +69,14 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	// analyze full project
 	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, false);
+	
 
 	// analyze project without testcode
 	//noTestResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, true);
 
 	str commonPath = getCommonPath(javaFiles);
 	
-	aggregateChildren(<locProject + commonPath,<projectName ,"project">>, ASTDeclarations, fullProjectResults);
+	BrowsableMap endResult = aggregateChildren(<locProject + commonPath,<projectName ,"project">>, ASTDeclarations, fullProjectResults);
 	
 	//visitTree(ASTDeclarations, fullProjectResults);
 	//getOveralRatings(fullProjectResults);
@@ -80,9 +84,9 @@ public void VisualizeProject(loc locProject, str projectName){
 	//createBrowsableMap(fullProjectResults);
 	//getOveralRatings(fullProjectResults);
 	
-	
-	println("we just got the results with tests included and without!");
-
+	//println("endResult: <endResult>");
+	//println("we just got the results with tests included and without!");
+	ShowTreeMap(endResult);
 }
 
 public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
