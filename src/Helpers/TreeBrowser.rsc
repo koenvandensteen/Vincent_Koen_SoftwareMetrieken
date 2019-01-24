@@ -61,7 +61,7 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	//if(root.objData.objType == "class")
 	//if(root.objData.objType == "package")
 	//if(root.objData.objType == "project")
-	//if(root.objData.objType == "project" || root.objData.objType == "package")
+	if(root.objData.objType == "project" || root.objData.objType == "package")
 		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
 	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
@@ -77,14 +77,15 @@ private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc curren
 	map[loc, AnalyzedObject] methodMap = ();
 	
 	switch(inType){
-		// projects have packages as children (if any)
+		// projects can contain files or packages
 		case /project/:{
 			packageMap = getPackageMap(current, AST);
 				return <packageMap, AST>;
 		}
-		// packages have classes as children
+		// packages can contain files (classes) or sub-packages
+		// we use the same method as with the project case since we approach these levels as folders
 		case /package/:{
-			classMap = getClassMap(current, AST);
+			classMap = getPackageMap(current, AST);
 				return <classMap, AST>;
 		}
 		// classes have methods as children
@@ -103,37 +104,22 @@ private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc curren
 
 }
 
-//returns all packages for a location
+// returns the contents of a dir, be it subdirs or (java)files
 private map[loc, AnalyzedObject] getPackageMap(loc current, AST){
-
+		
 	map[loc, AnalyzedObject] packageMap = ();
-	list[str] packageList = [];
-
-	visit(AST){
-		case \package(Declaration parentPackage, str name):{
-			if(! (name in packageList))
-				packageList += [name];	
-				packageMap += ((current+name):<name,"package">);	
-			}
+	
+	for(i <- current.ls){
+		//println("name = <i.file>");
+		if(isDirectory(i)){
+			println("package <i.file>");
+			packageMap += (i:<i.file,"package">);
+		}
+		if(isFile(i))
+			packageMap += (i:<i.file,"class">);
 	}
 	
 	return packageMap;
-}
-
-// returns a list of classes for a location
-private map[loc, AnalyzedObject] getClassMap(loc current, AST){
-
-	map[loc, AnalyzedObject] classMap = ();
-
-	visit(AST){
-		case c: \class(str name, _, _, _):{
-				if((c.src).path == (current+(name+".java")).path){
-					classMap += (c.src:<name,"class">);
-					}
-			}
-	}
-	
-	return classMap;
 }
 
 // gets all methods in a location
@@ -217,6 +203,7 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 	// get the size of the map to find the relative amounts later on
 	int mapSize = size(ratingList);
 	
+	
 	// during testing a bug became clear when a package is nested in another package
 	// until we arive at the point to fix this we ignor the problem bij returning an empty map
 	if(mapSize == 0){
@@ -229,6 +216,7 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 		return (retVal);
 
 	}
+	
 
 	// count occurences
 	for(i <- ratingList){
@@ -263,10 +251,12 @@ private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[rea
 	
 	tupSize = size(valIn);
 	
+	
 	// during testing a bug became clear when a package is nested in another package
 	// until we arive at the point to fix this we ignor the problem bij returning zero values
 	if(tupSize == 0)
 		return <-1.0, -1.0, -1>;
+	
 	
 	return <dup/tupSize, cov/tupSize, lines>;
 }

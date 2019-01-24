@@ -47,11 +47,13 @@ public void RunTestProgram(){
 	AnalyzeProject(|project://SimpleJavaDemo|,"Test Project");
 }
 
-public void RunVisualisations(){
+public void RunVisualisations(int i){
 	println("******* START ANALYZE JabberPoint *********");
-	VisualizeProject(|project://JabberPoint|,"JabberPoint");
+	if(i == 1)
+		VisualizeProject(|project://JabberPoint|,"JabberPoint");
 	println("******* START ANALYZE smallsql *********");
-	VisualizeProject(|project://smallsql|,"smallsql");
+	if(i==2)
+		VisualizeProject(|project://smallsql|,"smallsql");
 }
 
 public void VisualizeProject(loc locProject, str projectName){
