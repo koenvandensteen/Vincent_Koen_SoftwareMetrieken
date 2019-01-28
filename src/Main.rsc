@@ -73,9 +73,9 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	// analyze full project
 	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, false);
-	
 
 	// analyze project without testcode
+	println("line below can also be analysed! here we ignore the test code in our metrics");
 	//noTestResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, true);
 
 	str commonPath = getCommonPath(javaFiles);
@@ -160,7 +160,7 @@ public void AnalyzeGlobal(){
 	// overal rating 
 	/* we use the range sum of unit sizes because the overal loc count includes code outside of methods/constructors 
 	while that code is not counter for the duplicaiton metric*/
-	int overalDuplicationRating = GetDuplicationRating((getRangeSum(getPositives(duplicationMap))/getRangeSum(unitSizeMap))*100);
+	int overalDuplicationRating = GetDuplicationRating((getRangeSum(getPositives(duplicationMap))/getRangeSum(unitSizeMap)));
 	
 	
 	/* test coverage */
@@ -175,7 +175,7 @@ public void AnalyzeGlobal(){
 	// overal rating 
 	/* we use the range sum of unit sizes because the overal loc count includes code outside of methods/constructors 
 	while that code is not counter for the duplicaiton metric*/
-	int overalDuplicationRating = GetDuplicationRating((getRangeSum(getPositives(duplicationMap))/getRangeSum(unitSizeMap))*100);
+	int overalDuplicationRating = GetDuplicationRating((getRangeSum(getPositives(duplicationMap))/getRangeSum(unitSizeMap)));
 
 }
 
@@ -247,7 +247,7 @@ public void AnalyzeProject(loc locProject, str projectName)
 	totalReport+=PrintAndReturnString("total lines duplicated: <duplicatedLines>");
 	num duplicatePercentage = (duplicatedLines/(filteredLineCount/100.000));
 	totalReport+=PrintAndReturnString("total lines duplicated percentage: <round(duplicatePercentage,0.01)>%");
-	int duplicationRating = GetDuplicationRating(duplicatePercentage);
+	int duplicationRating = GetDuplicationRating(duplicatePercentage/100);
 	totalReport+=PrintAndReturnString("**** duplication SIG-rating: <transFormSIG(duplicationRating)>");
 	println("\n");
 	

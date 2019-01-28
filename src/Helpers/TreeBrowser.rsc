@@ -45,14 +45,10 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 		return projectTree;
 	}
 
-	//println();
-	//println("---- new for loop -----");
-	//println();
 	// recursive step, call this function for all the results
 	for(i <- domain(children.objectMap)){
 		result = aggregateChildren(<i, children.objectMap[i]>, children.newAST, workset);
-		branches  += (<i, children.objectMap[i].objName>:result); // branches are where the recursive calculation takes place in this method
-		//println("current <root.location> branches <branches>");
+		branches  += (<i, children.objectMap[i].objName>:result); // branches are where the recursive calculation takes place in this method, we add the result with <loc, name> as key
 		ratingList += result.rating; // we store the ratings of deeper objects seperately for easy calculation of a "global" sig
 		globalList += result.globalVars;
 	}
@@ -66,7 +62,7 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	//if(root.objData.objType == "package")
 	//if(root.objData.objType == "project")
 	//if(root.objData.objType == "project" || root.objData.objType == "package")
-	//	println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
+		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
 	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
@@ -108,16 +104,17 @@ private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc curren
 
 }
 
-// returns the contents of a dir, be it subdirs or (java)files
+// returns the contents of a dir, be it subdirs or javafiles
 private map[loc, AnalyzedObject] getPackageMap(loc current, AST){
 		
 	map[loc, AnalyzedObject] packageMap = ();
 	
+	// we sort files and directories. In case of files we ignore any non-java files	
 	for(i <- current.ls){
 		if(isDirectory(i)){
 			packageMap += (i:<i.file,"package">);
 		}
-		if(isFile(i))
+		if(isFile(i) && i.extension == "java")
 			packageMap += (i:<i.file,"class">);
 	}
 	
@@ -157,7 +154,8 @@ private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] 
 	factionsLoc = getOccurences(ratingList, 0);
 	factionsCompl = getOccurences(ratingList, 1);
 	percentageDup = getNewGlobalVars(globalList).Dup;
-	percentageTest = getNewGlobalVars(globalList).Cov;
+	percentageTest = (getNewGlobalVars(globalList).Cov);
+
 	
 	// for each metric, get the best current rating as the new rating cannot be higher than this
 	//maxRatings = getMaxSig(ratingList);
@@ -173,6 +171,7 @@ private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] 
 	//int nextDupRating = max(GetDuplicationRating(percentageDup),maxRatings.uDup);
 	// next rating for test coverage needs a percentage of coverage, we achieve this by averaging the list of earlier percentages
 	int nextTestRating = GetTestRating(percentageTest);
+	//println("test rating <nextTestRating> was generated from (average <sum(globalList.testPercent)/size(globalList.testPercent)>)<globalList.testPercent>");
 	//int nextTestRating = max(GetTestRating(percentageTest),maxRatings.uTest);
 
 	return <nextLocRating, nextCompRating, nextDupRating, nextTestRating>;
