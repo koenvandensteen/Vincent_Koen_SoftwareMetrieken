@@ -3,7 +3,7 @@ module View::TreeView
 import vis::Figure;
 import vis::Render;
 import vis::treemap;
-
+import vis::KeySym;
 import List;
 import IO;
 
@@ -53,6 +53,11 @@ void main()
 
 void ShowTreeMap(BrowsableMap myData)
 {
+	render(RenderTreeMap(myData));
+}
+
+Figure RenderTreeMap(BrowsableMap myData)
+{
 	figureList = [];
 
 	for(myMapKey <- myData.children)
@@ -60,11 +65,44 @@ void ShowTreeMap(BrowsableMap myData)
 		thisObj = myData.children[myMapKey];
 		//println("My Map Key: <myMapKey>");
 		//println("MyMap Name: <thisObj.abj.objName> with children <thisObj.children>");		
-		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount));
+		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount),
+			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+			
+			if(butnr==1)
+				render(RenderTreeMap(thisObj,myData));		
+			if(butnr==3)
+				println("topLostItem");
+					
+			return true;
+			}));
 	}
-	
-	t = treemap(figureList,fillColor("red"));
-	render(t);
+
+	return treemap(figureList,fillColor("red"));
+}
+
+
+Figure RenderTreeMap(BrowsableMap myData, BrowsableMap parent)
+{
+	figureList = [];
+
+	for(myMapKey <- myData.children)
+	{
+		thisObj = myData.children[myMapKey];
+		//println("My Map Key: <myMapKey>");
+		//println("MyMap Name: <thisObj.abj.objName> with children <thisObj.children>");		
+		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount),
+			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+			
+			if(butnr==1)
+				render(RenderTreeMap(thisObj,myData));		
+			if(butnr==3)
+				render(RenderTreeMap(parent,thisObj));
+					
+			return true;
+			}));
+	}
+
+	return treemap(figureList,fillColor("red"));
 }
 
 str GetRatingColor(SIGRating rating)

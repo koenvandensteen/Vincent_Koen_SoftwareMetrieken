@@ -45,9 +45,9 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 		return projectTree;
 	}
 
-	println();
-	println("---- new for loop -----");
-	println();
+	//println();
+	//println("---- new for loop -----");
+	//println();
 	// recursive step, call this function for all the results
 	for(i <- domain(children.objectMap)){
 		result = aggregateChildren(<i, children.objectMap[i]>, children.newAST, workset);

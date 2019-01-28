@@ -53,7 +53,7 @@ public void RunTestProgram(){
 public void RunVisualisations(int i){
 	if(i == 1 || i == 3){
 		println("******* START ANALYZE JabberPoint *********");
-		VisualizeProject(|project://JabberPoint|,"Jabberpoint");
+		VisualizeProject(|project://Jabberpoint|,"Jabberpoint");
 	}
 	if(i == 2 || i == 3){
 		println("******* START ANALYZE smallsql *********");
