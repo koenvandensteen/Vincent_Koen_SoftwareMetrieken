@@ -3,6 +3,9 @@ module View::TreeView
 import vis::Figure;
 import vis::Render;
 import vis::treemap;
+import vis::button;
+import vis::vcat;
+import vis::hcat;
 import vis::KeySym;
 import List;
 import IO;
@@ -46,14 +49,53 @@ void main()
 	tree3 = treemap(figures,fillColor("blue"),area(25));
 	
 	t = treemap([tree1,tree2,tree3]);
-     
-	render(t);
-	
+    
+}
+
+Figure FilterBoxes()
+{
+	filterBox1 =  button("filterBox1",void(){println("filterBox1");},shadow(true),fillColor("LightGray"));
+    filterBox2 =  button("filterBox2",void(){println("filterBox2");},shadow(true),fillColor("LightGray"));
+    filterBox3 =  button("filterBox3",void(){println("filterBox3");},shadow(true),fillColor("LightGray"));
+    filterBox4 =  button("filterBox4",void(){println("filterBox4");},shadow(true),fillColor("LightGray"));
+
+	return hcat([filterBox1,filterBox2,filterBox3,filterBox4],vshrink(0.1),gap(25));
+}
+
+
+Figure FilterBoxes()
+{
+	filterBox1 = box(text("filterBox1"),shadow(true),fillColor("Grey"));
+    filterBox2 = box(text("filterBox2"),shadow(true),fillColor("Grey"));
+    filterBox3 = box(text("filterBox3"),shadow(true),fillColor("Grey"));
+    filterBox4 = box(text("filterBox4"),shadow(true),fillColor("Grey"));
+
+	return hcat([filterBox1,filterBox2,filterBox3,filterBox4],vshrink(0.1),gap(25));
+}
+
+Figure DetailText()
+{
+	return box(text("This are the details of my currently hoovered object"),vshrink(0.2));
+}
+
+Figure TitleText()
+{
+	return box(text("Current Title of subobject",fontSize(20)),vshrink(0.1));
 }
 
 void ShowTreeMap(BrowsableMap myData)
 {
-	render(RenderTreeMap(myData));
+	render(
+		vcat(
+			[
+			FilterBoxes(),
+			DetailText(),			
+			TitleText(),
+			RenderTreeMap(myData)
+			], gap(10)
+		)
+	);
+	
 }
 
 Figure RenderTreeMap(BrowsableMap myData)
@@ -77,7 +119,7 @@ Figure RenderTreeMap(BrowsableMap myData)
 			}));
 	}
 
-	return treemap(figureList,fillColor("red"));
+	return treemap(figureList,fillColor("red"),vshrink(0.6));
 }
 
 
