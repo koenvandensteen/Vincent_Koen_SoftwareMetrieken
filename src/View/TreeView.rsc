@@ -9,7 +9,6 @@ import vis::hcat;
 import vis::KeySym;
 import List;
 import IO;
-
 import Helpers::DataContainers;
 
 import String;
@@ -21,56 +20,24 @@ import String;
 //data TreeMap = treeMap(loc location, AnalyzedObject abj, SIGRating rating, map[loc,TreeMap] children,int cl, bool render);
 //alias SIGRating = tuple[int uLoc, int uComp, int uDup, int uTest];
 
+[] Navigationquee;
+
+SigFilter SelectedFilter;
+//alias SigFilter = lrel[bool Loc, bool Comp, bool Dupl, bool Test];
+
 void main()
 {
-	
-	figures = [];
-	
-	
-	intList = [10,5,10,15,20,15];
-	
-	for(int number <- intList)
-	{
-		figures += box(text("jada"),area(number),fillColor("grey"));
-		figures += box(text("jada"),area(number),fillColor("red"));
-		figures += box(text("jada"),area(number),fillColor("blue"));
-	}
-	
-	//b0 = hcat(figures,top());
-	
-	//render(b0);
-	
-	//i = hcat([box(fillColor("red"),project(text(s),"hscreen")) | s <- ["a","b","c","d"]],top());
-	//sc = hscreen(b0,id("hscreen"));
-	//render(sc);
-	
-	tree1 = treemap(figures,fillColor("red"),area(10));
-	tree2 = treemap(figures,fillColor("green"),area(15));
-	tree3 = treemap(figures,fillColor("blue"),area(25));
-	
-	t = treemap([tree1,tree2,tree3]);
-    
+
 }
 
 Figure FilterBoxes()
 {
-	filterBox1 =  button("filterBox1",void(){println("filterBox1");},shadow(true),fillColor("LightGray"));
-    filterBox2 =  button("filterBox2",void(){println("filterBox2");},shadow(true),fillColor("LightGray"));
-    filterBox3 =  button("filterBox3",void(){println("filterBox3");},shadow(true),fillColor("LightGray"));
-    filterBox4 =  button("filterBox4",void(){println("filterBox4");},shadow(true),fillColor("LightGray"));
+	Loc =  checkbox("Lines of Code",void(bool s){SelectedFilter.Loc = s;},shadow(true),fillColor("LightGray"));
+    Comp =  checkbox("Complexity",void(bool s){SelectedFilter.Comp = s;},shadow(true),fillColor("LightGray"));
+    Dupl =  checkbox("Duplication",void(bool s){SelectedFilter.Dupl = s;},shadow(true),fillColor("LightGray"));
+    Test =  checkbox("Test",void(bool s){SelectedFilter.Test = s;},shadow(true),fillColor("LightGray"));
 
-	return hcat([filterBox1,filterBox2,filterBox3,filterBox4],vshrink(0.1),gap(25));
-}
-
-
-Figure FilterBoxes()
-{
-	filterBox1 = box(text("filterBox1"),shadow(true),fillColor("Grey"));
-    filterBox2 = box(text("filterBox2"),shadow(true),fillColor("Grey"));
-    filterBox3 = box(text("filterBox3"),shadow(true),fillColor("Grey"));
-    filterBox4 = box(text("filterBox4"),shadow(true),fillColor("Grey"));
-
-	return hcat([filterBox1,filterBox2,filterBox3,filterBox4],vshrink(0.1),gap(25));
+	return hcat([Loc,Comp,Dupl,Test],vshrink(0.1),gap(25));
 }
 
 Figure DetailText()
@@ -83,7 +50,26 @@ Figure TitleText()
 	return box(text("Current Title of subobject",fontSize(20)),vshrink(0.1));
 }
 
-void ShowTreeMap(BrowsableMap myData)
+void ShowGUI(BrowsableMap myData)
+{
+	/*AllData = myData;
+	SelectedItem = myData;*/
+	
+	Navigationquee = [myData];
+	
+	render(
+		vcat(
+			[
+			FilterBoxes(),
+			DetailText(),			
+			TitleText(),
+			RenderTreeMap()
+			], gap(10)
+		)
+	);
+}
+
+void RepaintGUI()
 {
 	render(
 		vcat(
@@ -91,29 +77,35 @@ void ShowTreeMap(BrowsableMap myData)
 			FilterBoxes(),
 			DetailText(),			
 			TitleText(),
-			RenderTreeMap(myData)
+			RenderTreeMap()
 			], gap(10)
 		)
 	);
-	
 }
 
-Figure RenderTreeMap(BrowsableMap myData)
+Figure RenderTreeMap()
 {
 	figureList = [];
 
-	for(myMapKey <- myData.children)
+	for(myMapKey <-  Navigationquee[size(Navigationquee)-1].children)
 	{
-		thisObj = myData.children[myMapKey];
+		thisObj =  Navigationquee[size(Navigationquee)-1].children[myMapKey];
 		//println("My Map Key: <myMapKey>");
 		//println("MyMap Name: <thisObj.abj.objName> with children <thisObj.children>");		
 		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount),
 			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
 			
 			if(butnr==1)
-				render(RenderTreeMap(thisObj,myData));		
+			{
+				Navigationquee += thisObj;
+				RepaintGUI();
+			}
+	
 			if(butnr==3)
-				println("topLostItem");
+			{
+				Navigationquee = delete(Navigationquee,size(Navigationquee)-1);
+				RepaintGUI();
+			}
 					
 			return true;
 			}));
@@ -123,7 +115,7 @@ Figure RenderTreeMap(BrowsableMap myData)
 }
 
 
-Figure RenderTreeMap(BrowsableMap myData, BrowsableMap parent)
+/*Figure RenderTreeMap(BrowsableMap myData, BrowsableMap parent)
 {
 	figureList = [];
 
@@ -145,7 +137,7 @@ Figure RenderTreeMap(BrowsableMap myData, BrowsableMap parent)
 	}
 
 	return treemap(figureList,fillColor("red"));
-}
+}*/
 
 str GetRatingColor(SIGRating rating)
 {

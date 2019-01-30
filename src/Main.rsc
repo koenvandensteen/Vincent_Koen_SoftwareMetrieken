@@ -90,7 +90,7 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	println("endResult: <endResult>");
 	//println("we just got the results with tests included and without!");
-	ShowTreeMap(endResult);
+	ShowGUI(endResult);
 }
 
 public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
