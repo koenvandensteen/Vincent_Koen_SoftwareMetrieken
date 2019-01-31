@@ -62,7 +62,7 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	//if(root.objData.objType == "package")
 	//if(root.objData.objType == "project")
 	//if(root.objData.objType == "project" || root.objData.objType == "package")
-		println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
+	//	println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 	
 	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
