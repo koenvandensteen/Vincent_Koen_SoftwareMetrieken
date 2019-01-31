@@ -1,0 +1,41 @@
+**** analasys started at: $2019-01-31T20:51:09.644+00:00$
+total lines filtered: 669
+**** line count SIG-rating: 2
+**** unit size SIG-rating: -2
+**** unit complexity SIG-rating: 2
+**** duplication SIG-rating: 2
+**** test coverage SIG-rating: -1
+**** analysability: 0 
+**** changeability: ++
+**** stability: - 
+**** testability: 0 
+|project://JabberPoint/src| has been analyzed and receives an overal rating of: 0 
+
+
+
+
+ISO 9126 maintainability chart
+______________________________
+     | V | U | D | U | U || T 
+     | O | N | U | N | N || O 
+     | L | T | P | T | T || T 
+     | U | C | L | S | T || A 
+     | M | M | I | I | S || L 
+     | E | X | C | Z | T || * 
+_____|___|___|___|___|___||___
+ANALY|++ |   |++ |-- |-  ||0 
+CHANG|   |++ |++ |   |   ||++
+STABI|   |   |   |   |-  ||- 
+TESTA|   |++ |   |-- |-  ||0 
+_____|___|___|___|___|___||___
+TOTAL|   |   |   |   |   ||0  
+
+
+
+
+**** analys ended at: $2019-01-31T20:51:12.343+00:00$ and took 0 minutes 1 seconds 934 milliseconds 
+
+
+
+
+
