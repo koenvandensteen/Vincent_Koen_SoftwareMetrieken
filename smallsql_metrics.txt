@@ -1,0 +1,41 @@
+**** analasys started at: $2019-01-31T21:37:25.668+00:00$
+total lines filtered: 24646
+**** line count SIG-rating: 2
+**** unit size SIG-rating: -2
+**** unit complexity SIG-rating: -2
+**** duplication SIG-rating: -2
+**** test coverage SIG-rating: -3
+**** analysability: - 
+**** changeability: --
+**** stability: N/A
+**** testability: --
+|project://smallsql/src/smallsql| has been analyzed and receives an overal rating of: --
+
+
+
+
+ISO 9126 maintainability chart
+______________________________
+     | V | U | D | U | U || T 
+     | O | N | U | N | N || O 
+     | L | T | P | T | T || T 
+     | U | C | L | S | T || A 
+     | M | M | I | I | S || L 
+     | E | X | C | Z | T || * 
+_____|___|___|___|___|___||___
+ANALY|++ |   |-- |-- |N/A ||- 
+CHANG|   |-- |-- |   |   ||--
+STABI|   |   |   |   |N/A ||N/A
+TESTA|   |-- |   |-- |N/A ||--
+_____|___|___|___|___|___||___
+TOTAL|   |   |   |   |   ||-- 
+
+
+
+
+**** analys ended at: $2019-01-31T21:40:02.277+00:00$ and took 0 minutes 58 seconds 511 milliseconds 
+
+
+
+
+
