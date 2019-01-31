@@ -3,10 +3,12 @@ module View::TreeView
 import vis::Figure;
 import vis::Render;
 import vis::treemap;
-
+import vis::button;
+import vis::vcat;
+import vis::hcat;
+import vis::KeySym;
 import List;
 import IO;
-
 import Helpers::DataContainers;
 
 import String;
@@ -18,40 +20,102 @@ import String;
 //data TreeMap = treeMap(loc location, AnalyzedObject abj, SIGRating rating, map[loc,TreeMap] children,int cl, bool render);
 //alias SIGRating = tuple[int uLoc, int uComp, int uDup, int uTest];
 
+[] Navigationquee;
+
+SigFilter SelectedFilter;
+//alias SigFilter = lrel[bool Loc, bool Comp, bool Dupl, bool Test];
+
 void main()
 {
-	
-	figures = [];
-	
-	
-	intList = [10,5,10,15,20,15];
-	
-	for(int number <- intList)
-	{
-		figures += box(text("jada"),area(number),fillColor("grey"));
-		figures += box(text("jada"),area(number),fillColor("red"));
-		figures += box(text("jada"),area(number),fillColor("blue"));
-	}
-	
-	//b0 = hcat(figures,top());
-	
-	//render(b0);
-	
-	//i = hcat([box(fillColor("red"),project(text(s),"hscreen")) | s <- ["a","b","c","d"]],top());
-	//sc = hscreen(b0,id("hscreen"));
-	//render(sc);
-	
-	tree1 = treemap(figures,fillColor("red"),area(10));
-	tree2 = treemap(figures,fillColor("green"),area(15));
-	tree3 = treemap(figures,fillColor("blue"),area(25));
-	
-	t = treemap([tree1,tree2,tree3]);
-     
-	render(t);
-	
+
 }
 
-void ShowTreeMap(BrowsableMap myData)
+Figure FilterBoxes()
+{
+	Loc =  checkbox("Lines of Code",void(bool s){SelectedFilter.Loc = s;},shadow(true),fillColor("LightGray"));
+    Comp =  checkbox("Complexity",void(bool s){SelectedFilter.Comp = s;},shadow(true),fillColor("LightGray"));
+    Dupl =  checkbox("Duplication",void(bool s){SelectedFilter.Dupl = s;},shadow(true),fillColor("LightGray"));
+    Test =  checkbox("Test",void(bool s){SelectedFilter.Test = s;},shadow(true),fillColor("LightGray"));
+
+	return hcat([Loc,Comp,Dupl,Test],vshrink(0.1),gap(25));
+}
+
+Figure DetailText()
+{
+	return box(text("This are the details of my currently hoovered object"),vshrink(0.2));
+}
+
+Figure TitleText()
+{
+	return box(text("Current Title of subobject",fontSize(20)),vshrink(0.1));
+}
+
+void ShowGUI(BrowsableMap myData)
+{
+	/*AllData = myData;
+	SelectedItem = myData;*/
+	
+	Navigationquee = [myData];
+	
+	render(
+		vcat(
+			[
+			FilterBoxes(),
+			DetailText(),			
+			TitleText(),
+			RenderTreeMap()
+			], gap(10)
+		)
+	);
+}
+
+void RepaintGUI()
+{
+	render(
+		vcat(
+			[
+			FilterBoxes(),
+			DetailText(),			
+			TitleText(),
+			RenderTreeMap()
+			], gap(10)
+		)
+	);
+}
+
+Figure RenderTreeMap()
+{
+	figureList = [];
+
+	for(myMapKey <-  Navigationquee[size(Navigationquee)-1].children)
+	{
+		thisObj =  Navigationquee[size(Navigationquee)-1].children[myMapKey];
+		//println("My Map Key: <myMapKey>");
+		//println("MyMap Name: <thisObj.abj.objName> with children <thisObj.children>");		
+		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount),
+			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+			
+			if(butnr==1)
+			{
+				Navigationquee += thisObj;
+				RepaintGUI();
+			}
+	
+			if(butnr==3)
+			{
+				Navigationquee = delete(Navigationquee,size(Navigationquee)-1);
+				RepaintGUI();
+			}
+					
+			return true;
+			}));
+	}
+
+	return treemap(figureList,fillColor("red"),vshrink(0.6));
+}
+
+
+/*Figure RenderTreeMap(BrowsableMap myData, BrowsableMap parent)
 {
 	figureList = [];
 
@@ -60,12 +124,20 @@ void ShowTreeMap(BrowsableMap myData)
 		thisObj = myData.children[myMapKey];
 		//println("My Map Key: <myMapKey>");
 		//println("MyMap Name: <thisObj.abj.objName> with children <thisObj.children>");		
-		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount));
+		figureList+=box(text(thisObj.abj.objName),fillColor(GetRatingColor(thisObj.rating)),area(thisObj.globalVars.lineCount),
+			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {
+			
+			if(butnr==1)
+				render(RenderTreeMap(thisObj,myData));		
+			if(butnr==3)
+				render(RenderTreeMap(parent,thisObj));
+					
+			return true;
+			}));
 	}
-	
-	t = treemap(figureList,fillColor("red"));
-	render(t);
-}
+
+	return treemap(figureList,fillColor("red"));
+}*/
 
 str GetRatingColor(SIGRating rating)
 {
