@@ -22,7 +22,11 @@ import String;
 
 [] Navigationquee;
 
+BrowsableMap HooveredItem;
+
 SigFilter SelectedFilter;
+bool ObjectHighlighted = false;
+
 //alias SigFilter = lrel[bool Loc, bool Comp, bool Dupl, bool Test];
 
 void main()
@@ -42,12 +46,35 @@ Figure FilterBoxes()
 
 Figure DetailText()
 {
-	return box(text("This are the details of my currently hoovered object"),vshrink(0.2));
+	if(ObjectHighlighted)
+	{
+		return box(text(HooveredItem.abj.objName),vshrink(0.2));
+	}
+	else
+	{
+		return box(text("No details to be shown"),vshrink(0.2));
+	}
+		
+	
 }
 
-Figure TitleText()
+Figure TitleBar()
 {
-	return box(text("Current Title of subobject",fontSize(20)),vshrink(0.1));
+	barItems = [box(text("<Navigationquee[size(Navigationquee)-1].abj.objName>",fontSize(20)))];
+
+	if(size(Navigationquee)>1)
+	{
+		barItems = insertAt(barItems,0,
+			button("Go back to <Navigationquee[size(Navigationquee)-2].abj.objType>-View",
+			void(){
+				Navigationquee = delete(Navigationquee,size(Navigationquee)-1);
+				ObjectHighlighted = false;
+				RepaintGUI();
+			}
+		,hshrink(0.2)));
+	}
+	
+	return box(hcat(barItems),vshrink(0.1));
 }
 
 void ShowGUI(BrowsableMap myData)
@@ -56,13 +83,14 @@ void ShowGUI(BrowsableMap myData)
 	SelectedItem = myData;*/
 	
 	Navigationquee = [myData];
+	HooveredItem = myData;
 	
 	render(
 		vcat(
 			[
 			FilterBoxes(),
 			DetailText(),			
-			TitleText(),
+			TitleBar(),
 			RenderTreeMap()
 			], gap(10)
 		)
@@ -76,7 +104,7 @@ void RepaintGUI()
 			[
 			FilterBoxes(),
 			DetailText(),			
-			TitleText(),
+			TitleBar(),
 			RenderTreeMap()
 			], gap(10)
 		)
@@ -102,13 +130,15 @@ Figure RenderTreeMap()
 			}
 	
 			if(butnr==3)
-			{
-				Navigationquee = delete(Navigationquee,size(Navigationquee)-1);
+			{				
+				HooveredItem = thisObj;
+				ObjectHighlighted = true;
 				RepaintGUI();
 			}
 					
 			return true;
-			}));
+			})
+			);
 	}
 
 	return treemap(figureList,fillColor("red"),vshrink(0.6));
