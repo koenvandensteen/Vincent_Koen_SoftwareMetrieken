@@ -78,7 +78,7 @@ private Figure RatingSelection(){
 					RepaintGUI();
 				}),
 				box(text(str(){return "Selected metric: " + programConf.currentMetric ;},fontSize(10)),vshrink(0.2))
-			],hshrink(0.20));
+			],hshrink(0.25));
 }
 
 //project selection
@@ -93,7 +93,7 @@ private Figure ProjectSelection(){
 					setInputDataset(s, programConf.noTest);
 				}),
 				box(text(str(){return "Current project: " + state  ;},fontSize(10)),vshrink(0.2))
-			],hshrink(0.20));
+			],hshrink(0.25));
 }
 
 //display configuration, configuration is stored in a global variable
@@ -107,7 +107,7 @@ Figure ConfigControls(){
 	About = button("Info", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
 	
-	return hcat([Color, NoTest, Export, About],hshrink(0.6));//,vshrink(0.1),gap(25));
+	return hcat([vcat([Color, NoTest]), Export, About],hshrink(0.5));//,vshrink(0.1),gap(25));
 }
 
 // combine control components in one box
