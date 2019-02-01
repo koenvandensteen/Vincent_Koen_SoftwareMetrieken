@@ -24,7 +24,7 @@ bool ObjectHighlighted = false;
 
 Figure DetailText()
 {
-	if(ObjectHighlighted && !(programConf.aboutBox))
+	if(/*ObjectHighlighted && */!(programConf.aboutBox))
 	{
 		output = "<HooveredItem.abj.objName> has the following metrics:\n";
 		output += "Total lines of code = <HooveredItem.globalVars.lineCount> ";
@@ -34,11 +34,16 @@ Figure DetailText()
 
 		return box(text(output),vshrink(0.1));
 	}
-	else if(!(programConf.aboutBox)){
+	/*else if(!(programConf.aboutBox)){
 		return box(text("No details to be shown"),vshrink(0.1));
-	}
+	}*/
 	else{
-		return box(text("LMB: go into, RMB: show details\nLists: The left list allows the user to select the metric he wishes to display, the list to the right selects the project.\nCheckboxes: Color blind mode will display all results in grayscale, the ignore unit tests will allow the user to not incorporate those results in the test.Buttons: export view will create a .png of the current view, toggle about shows this box! \nCreated by KVDS and VB"),vshrink(0.1));
+		output = "LMB: go into, RMB: show details\n";
+		output += "Lists: The left list allows the user to select the metric he wishes to display, the list to the right selects the project.\n";
+		output += "Checkboxes: \"Color blind mode\" will display all results in grayscale, ";
+		output += "\"Ignore Junit\" will allow the user to not incorporate those results in the test. ";
+		output += "Buttons: \"Export view\" will create a .png of the current view, \"Info\" shows this box! \nCreated by KVDS and VB";
+		return box(text(output),fontSize(10),vshrink(0.1));
 	}		
 }
 
@@ -72,7 +77,7 @@ private Figure RatingSelection(){
 					programConf.currentMetric = s;
 					RepaintGUI();
 				}),
-				box(text(str(){return "Selected: " + programConf.currentMetric ;},fontSize(10)),vshrink(0.2))
+				box(text(str(){return "Selected metric: " + programConf.currentMetric ;},fontSize(10)),vshrink(0.2))
 			],hshrink(0.20));
 }
 
@@ -86,8 +91,8 @@ private Figure ProjectSelection(){
 					state = s; // from example
 					// change current dataset
 					setInputDataset(s, programConf.noTest);
-				})//,
-				//text(str(){return "Current project: " + proj ;}, left())
+				}),
+				box(text(str(){return "Current project: " + state  ;},fontSize(10)),vshrink(0.2))
 			],hshrink(0.20));
 }
 
@@ -98,8 +103,8 @@ Figure ConfigControls(){
 	loc exloc = (|project://SoftwareEvolution/renders/|+programConf.currentProject)+(Navigationquee[size(Navigationquee)-1].abj.objName + ".png");
 
 	Color =  checkbox("Color blind mode",programConf[0],void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
-	NoTest =  checkbox("Ignore junit test",programConf[1],void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
-	About = button("Toggle about", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
+	NoTest =  checkbox("Ignore Junit",programConf[1],void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
+	About = button("Info", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
 	
 	return hcat([Color, NoTest, Export, About],hshrink(0.6));//,vshrink(0.1),gap(25));
@@ -121,9 +126,6 @@ public void ShowGUI(map[tuple[str name, bool noTest] key, BrowsableMap mapData] 
 	projectMap = projects;
 	set[str] tempList ={a.name | a <- domain(projects)};
 	projectList = toList(tempList);
-	
-	//debug
-	println(projectList);
 	
 	//set starting configuration
 	programConf.colorBlind = false;
@@ -158,7 +160,7 @@ Figure RenderTreeMap()
 	
 	// get grayscale or colored scale depending if the user checked the color blind box
 	cscale = GetColorScale();
-	
+
 	for(myMapKey <-  Navigationquee[size(Navigationquee)-1].children)
 	{
 		thisObj =  Navigationquee[size(Navigationquee)-1].children[myMapKey];
@@ -223,9 +225,9 @@ private int getRating(SIGRating rating, GlobalVars objVars){
 			return GetTotalSIGRating(GetMaintabilityRating(volumeRating, rating.uComp, rating.uDup, rating.uLoc, rating.uTest));
 		case "Lines of code":
 			return volumeRating;
-		case "Complexity":
+		case "Unit size":
 			return(rating.uLoc);
-		case "Complexity":
+		case "Unit complexity":
 			return(rating.uComp);
 		case "Duplication":
 			return(rating.uDup);

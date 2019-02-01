@@ -57,8 +57,6 @@ public void TestVisualisations(int i){
 		allGuiData += createProjectVisualisations(|project://JabberPoint|,"Jabberpoint");
 	}
 	
-	println(domain(allGuiData));
-	
 	ShowGUI(allGuiData);
 }
 
@@ -171,77 +169,72 @@ public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMo
 	
 	// time management 
 	executionDuration = createDuration(startMoment,endMoment);	
-	totalReport+=PrintAndReturnString("**** analasys started at: <startMoment>");
+	totalReport+=("**** analasys started at: <startMoment>");
 	
 	/*
 	//LOC Metric
 	*/
 	volumeRating = GetSigRatingLOC(proj.globalVars.lineCount);
-	totalReport+=PrintAndReturnString("total lines filtered: <proj.globalVars.lineCount>");
-	totalReport+=PrintAndReturnString("**** line count SIG-rating: <volumeRating>");
-	println("\n");
+	totalReport+=("total lines filtered: <proj.globalVars.lineCount>");
+	totalReport+=("**** line count SIG-rating: <volumeRating>");
 	
 	/*
 	//unitSizeRating Metric
 	*/	
 	overalUnitSizeRating = proj.rating.uLoc;
-	totalReport+=PrintAndReturnString("**** unit size SIG-rating: <overalUnitSizeRating>");
-	println("\n");
+	totalReport+=("**** unit size SIG-rating: <overalUnitSizeRating>");
 	
 	/*
 	//Unit Complexity Metric
 	*/
 	overalComplexityRating = proj.rating.uComp;
-	totalReport+=PrintAndReturnString("**** unit complexity SIG-rating: <overalComplexityRating>");
-	println("\n");
+	totalReport+=("**** unit complexity SIG-rating: <overalComplexityRating>");
 	
 	/*
 	//duplication Metric
 	*/
 	duplicationRating = proj.rating.uDup;
-	totalReport+=PrintAndReturnString("**** duplication SIG-rating: <duplicationRating>");
-	println("\n");
+	totalReport+=("**** duplication SIG-rating: <duplicationRating>");
 	
 	/*
 	//unit Test Rating metric
 	*/	
 	unitTestingRating = proj.rating.uTest;
-	totalReport+=PrintAndReturnString("**** test coverage SIG-rating: <unitTestingRating>");
-	println("\n");
+	totalReport+=("**** test coverage SIG-rating: <unitTestingRating>");
 	
 	/*
 	//Overal agregation of data
 	*/			
 	maintabilityRating = GetMaintabilityRating(volumeRating, overalComplexityRating, duplicationRating, overalUnitSizeRating, unitTestingRating);
-	totalReport+=PrintAndReturnString("**** analysability: <transFormSIG(maintabilityRating.analysability)>");
-	totalReport+=PrintAndReturnString("**** changeability: <transFormSIG(maintabilityRating.changeability)>");
-	totalReport+=PrintAndReturnString("**** stability: <transFormSIG(maintabilityRating.stability)>");
-	totalReport+=PrintAndReturnString("**** testability: <transFormSIG(maintabilityRating.testability)>");
-	totalReport+=PrintAndReturnString("<proj.location> has been analyzed and receives an overal rating of: <transFormSIG(GetTotalSIGRating(maintabilityRating))>");
+	totalReport+=("**** analysability: <transFormSIG(maintabilityRating.analysability)>");
+	totalReport+=("**** changeability: <transFormSIG(maintabilityRating.changeability)>");
+	totalReport+=("**** stability: <transFormSIG(maintabilityRating.stability)>");
+	totalReport+=("**** testability: <transFormSIG(maintabilityRating.testability)>");
+	totalReport+=("<proj.location> has been analyzed and receives an overal rating of: <transFormSIG(GetTotalSIGRating(maintabilityRating))>");
 	
-	totalReport+=PrintAndReturnString("\n");
-	totalReport+=PrintAndReturnString("\n");
+	totalReport+=("\n");
+	totalReport+=("\n");
 	
-	totalReport+=PrintAndReturnString("ISO 9126 maintainability chart");
-	totalReport+=PrintAndReturnString("______________________________");
-	totalReport+=PrintAndReturnString("     | V | U | D | U | U || T ");	
-	totalReport+=PrintAndReturnString("     | O | N | U | N | N || O ");	
-	totalReport+=PrintAndReturnString("     | L | T | P | T | T || T ");
-	totalReport+=PrintAndReturnString("     | U | C | L | S | T || A ");
-	totalReport+=PrintAndReturnString("     | M | M | I | I | S || L ");
-	totalReport+=PrintAndReturnString("     | E | X | C | Z | T || * ");
-	totalReport+=PrintAndReturnString("_____|___|___|___|___|___||___");
-	totalReport+=PrintAndReturnString("ANALY|<transFormSIG(volumeRating)> |   |<transFormSIG(duplicationRating)> |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.analysability)>");
-	totalReport+=PrintAndReturnString("CHANG|   |<transFormSIG(overalComplexityRating)> |<transFormSIG(duplicationRating)> |   |   ||<transFormSIG(maintabilityRating.changeability)>");
-	totalReport+=PrintAndReturnString("STABI|   |   |   |   |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.stability)>");
-	totalReport+=PrintAndReturnString("TESTA|   |<transFormSIG(overalComplexityRating)> |   |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.testability)>");
-	totalReport+=PrintAndReturnString("_____|___|___|___|___|___||___");
-	totalReport+=PrintAndReturnString("TOTAL|   |   |   |   |   ||<transFormSIG(GetTotalSIGRating(maintabilityRating))> ");
-	totalReport+=PrintAndReturnString("\n");
-	totalReport+=PrintAndReturnString("\n");
+	totalReport+=("ISO 9126 maintainability chart");
+	totalReport+=("______________________________");
+	totalReport+=("     | V | U | D | U | U || T ");	
+	totalReport+=("     | O | N | U | N | N || O ");	
+	totalReport+=("     | L | T | P | T | T || T ");
+	totalReport+=("     | U | C | L | S | T || A ");
+	totalReport+=("     | M | M | I | I | S || L ");
+	totalReport+=("     | E | X | C | Z | T || * ");
+	totalReport+=("_____|___|___|___|___|___||___");
+	totalReport+=("ANALY|<transFormSIG(volumeRating)> |   |<transFormSIG(duplicationRating)> |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.analysability)>");
+	totalReport+=("CHANG|   |<transFormSIG(overalComplexityRating)> |<transFormSIG(duplicationRating)> |   |   ||<transFormSIG(maintabilityRating.changeability)>");
+	totalReport+=("STABI|   |   |   |   |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.stability)>");
+	totalReport+=("TESTA|   |<transFormSIG(overalComplexityRating)> |   |<transFormSIG(overalUnitSizeRating)> |<transFormSIG(unitTestingRating)> ||<transFormSIG(maintabilityRating.testability)>");
+	totalReport+=("_____|___|___|___|___|___||___");
+	totalReport+=("TOTAL|   |   |   |   |   ||<transFormSIG(GetTotalSIGRating(maintabilityRating))> ");
+	totalReport+=("\n");
+	totalReport+=("\n");
 	
 	
-	totalReport+=PrintAndReturnString("**** analys ended at: <now()> and took <executionDuration.minutes> minutes <executionDuration.seconds> seconds <executionDuration.milliseconds> milliseconds \n\n\n\n\n");
+	totalReport+=("**** analys ended at: <now()> and took <executionDuration.minutes> minutes <executionDuration.seconds> seconds <executionDuration.milliseconds> milliseconds \n\n\n\n\n");
 			
 	loc writeDestination = |project://SoftwareEvolution/|;
 	
@@ -251,15 +244,6 @@ public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMo
 	else{
 		writeDestination.uri += "/<proj.abj.objName>_metrics.txt";
 	}
-		
-	println(writeDestination.uri);
+	
 	writeFile(writeDestination, totalReport);
 }
-
-
-private str PrintAndReturnString(str message)
-{
-	println(message);
-	return message+"\n";
-}
-

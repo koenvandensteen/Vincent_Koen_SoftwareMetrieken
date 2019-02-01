@@ -109,13 +109,13 @@ public map[loc, str] getLocsNames(set[Declaration] decls){
 	return locNameList;
 }
 
-// calculates the relative quanitity of "target" using "base"
+// calculates the relative quanitity of "target" using "base", if no positive number can be obtained, 0 is returned
 public map[loc, real] getRelativeRate(map[loc, int] base, map[loc, int] target){
 	
 	map[loc, real] retVal = ();
 	
 	for(i <- domain(base)){
-		if(i in target && base[i] > 0){
+		if(i in target && base[i] > 0 && target[i] > 0){
 			retVal[i] = round(toReal(target[i])/base[i]*100.0,0.01)/100;
 		}
 		else{
