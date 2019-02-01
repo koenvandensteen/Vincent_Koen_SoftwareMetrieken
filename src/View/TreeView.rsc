@@ -94,7 +94,7 @@ private Figure ProjectSelection(){
 Figure ConfigControls(){
 	
 	//location for export
-	loc exloc = (|project://SoftwareEvolution/renders/|+HooveredItem.abj.objName)+"image.png";
+	loc exloc = (|project://SoftwareEvolution/renders/|+programConf.currentProject)+(Navigationquee[size(Navigationquee)-1].abj.objName + ".png");
 
 	Color =  checkbox("Color blind mode",void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	NoTest =  checkbox("Ignore junit test",void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
