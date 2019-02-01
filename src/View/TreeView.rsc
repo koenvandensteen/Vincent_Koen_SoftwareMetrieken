@@ -123,7 +123,7 @@ Figure TitleBar()
 						RepaintGUI();
 					})//,
 					//text(str(){return "Currently displaying: " + state ;}, left())
-				]);
+				],hshrink(0.20));
 	}
 
 	//project selection
@@ -138,16 +138,22 @@ Figure TitleBar()
 						setInputDataset(s, programConf.noTest);
 					})//,
 					//text(str(){return "Current project: " + proj ;}, left())
-				]);
+				],hshrink(0.20));
 	}
 
 	//display configuration, configuration is stored in a global variable
 	Figure ConfigControls(){
+		
+		//location for export
+		loc exloc = (|project://SoftwareEvolution/renders/|+HooveredItem.abj.objName)+"image.png";
+		println(exloc);
+	
 		Color =  checkbox("Color blind mode",void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 		NoTest =  checkbox("Ignore junit test",void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 		About = button("Toggle about", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
+		Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
 		
-		return hcat([Color, NoTest, About]);//,vshrink(0.1),gap(25));
+		return hcat([Color, NoTest, Export, About],hshrink(0.6));//,vshrink(0.1),gap(25));
 	}
 
 	// combine control components in one box
@@ -156,8 +162,7 @@ Figure TitleBar()
 		projects = ProjectSelection();
 		configurations = ConfigControls();
 		
-		//return hcat([filters, projects, configurations],vshrink(0.1),gap(25));
-		return hcat([filters, projects, configurations],vshrink(0.2),gap(25));
+		return hcat([filters, projects, configurations],vshrink(0.2),gap(20));
 	}
 /* end new */
 
