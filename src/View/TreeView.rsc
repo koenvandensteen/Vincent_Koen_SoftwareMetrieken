@@ -25,13 +25,20 @@ Figure DetailText()
 {
 	if(ObjectHighlighted && !(programConf.aboutBox))
 	{
-		return box(text(HooveredItem.abj.objName),vshrink(0.1));
+		output = "<HooveredItem.abj.objName> has the following metrics:\n";
+		output += "Total lines of code = <HooveredItem.globalVars.lineCount> ";
+		output += "Duplication percentage = <HooveredItem.globalVars.dupPercent> ";
+		output += "Test coverage = <HooveredItem.globalVars.testPercent>\n";
+		output += "Sig metrics: unit size: <transFormSIG(HooveredItem.rating.uLoc)> unit complexity: <transFormSIG(HooveredItem.rating.uComp)> Test coverage: <transFormSIG(HooveredItem.rating.uTest)> Duplication: <transFormSIG(HooveredItem.rating.uDup)>";
+	//alias SIGRating = tuple[int uLoc, int uComp, int uDup, int uTest];
+	//alias GlobalVars =  tuple[real dupPercent, real testPercent, int lineCount];
+		return box(text(output),vshrink(0.1));
 	}
 	else if(!(programConf.aboutBox)){
 		return box(text("No details to be shown"),vshrink(0.1));
 	}
 	else{
-		return box(text("Lists: The left list allows the user to select the metric he wishes to display, the list to the right selects the project. \n Checkboxes: Color blind mode will display all results in grayscale, the ignore unit tests will allow the user to not incorporate those results in the test.\n Buttons: export view will create a .png of the current view, toggle about shows this box! \n Created by KVDS and VB"),vshrink(0.1));
+		return box(text("LMB: go into, RMB: show details\nLists: The left list allows the user to select the metric he wishes to display, the list to the right selects the project.\nCheckboxes: Color blind mode will display all results in grayscale, the ignore unit tests will allow the user to not incorporate those results in the test.Buttons: export view will create a .png of the current view, toggle about shows this box! \nCreated by KVDS and VB"),vshrink(0.1));
 	}		
 }
 
