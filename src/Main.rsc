@@ -29,17 +29,6 @@ import util::Math;
 
 import View::TreeView;
 
-
-public void AnalyzeAllProjects()
-{
-	println("******* START ANALYZE JABBERPOINT *********");
-	AnalyzeProject(|project://Jabberpoint|,"jabberPoint");
-	println("******* START ANALYZE smallsql *********");
-	AnalyzeProject(|project://smallsql|,"smallsql");
-	println("******* START ANALYZE hsqldb *********");
-	AnalyzeProject(|project://hsqldb|,"hsqldb");
-}
-
 public void RunTestProgram(){
 	// run test module
 	println("******* CHECK PROGRAM VALIDITY *********");
@@ -50,27 +39,51 @@ public void RunTestProgram(){
 	AnalyzeProject(|project://SimpleJavaDemo|,"Test Project");
 }
 
-public void RunVisualisations(int i){
-	if(i == 1 || i == 3){
+// test class, for manual selection of one project to speed up rendering
+public void TestVisualisations(int i){
+	
+	map[tuple[str name, bool junit] key, BrowsableMap mapData] allGuiData = ();
+
+	if(i == 1){
 		println("******* START ANALYZE JabberPoint *********");
-		VisualizeProject(|project://Jabberpoint|,"Jabberpoint");
+		allGuiData += createProjectVisualisations(|project://Jabberpoint|,"Jabberpoint");
 	}
-	if(i == 2 || i == 3 || i == 4){
+	if(i == 2 || i == 4){
 		println("******* START ANALYZE smallsql *********");
-		VisualizeProject(|project://smallsql|,"smallsql");
+		allGuiData += createProjectVisualisations(|project://smallsql|,"smallsql");
 	}
-	if(i == 4 || i == 5){
+	if(i == 3 || i == 4){
 		println("******* START ANALYZE JabberPoint *********");
-		VisualizeProject(|project://JabberPoint|,"Jabberpoint");
+		allGuiData += createProjectVisualisations(|project://JabberPoint|,"Jabberpoint");
 	}
+	
+	println(domain(allGuiData));
+	
+	ShowGUI(allGuiData);
 }
 
-public void VisualizeProject(loc locProject, str projectName){
+// main function for gathering, and displaying, project data
+public void runVisualisation(){
+
+	map[tuple[str name, bool junit] key, BrowsableMap mapData] allGuiData = ();
+
+	println("******* START ANALYZE JabberPoint *********");
+	allGuiData += createProjectVisualisations(|project://JabberPoint|,"Jabberpoint");
+	println("******* START ANALYZE smallsql *********");
+	allGuiData += createProjectVisualisations(|project://smallsql|,"smallsql");
+	println("******* START ANALYZE hsqldb *********");
+	allGuiData += AnalyzeProject(|project://hsqldb|,"hsqldb");
+	
+	// open gui
+	ShowGUI(allGuiData);
+}
+
+// creates data in format for visualisation
+private map[tuple[str name, bool junit] key, BrowsableMap mapData] createProjectVisualisations(loc locProject, str projectName){
 	
 	Workset fullProjectResults;
 	Workset noTestResults;
-	
-	println("make this map at a higher level, to stack all projects!");
+
 	map[tuple[str name, bool junit] key, BrowsableMap mapData] guiData = ();
 
 	// start timer
@@ -102,10 +115,10 @@ public void VisualizeProject(loc locProject, str projectName){
 	// print out the report
 	CreateReport(endResult, startMoment, endMoment, true);
 	
-	// open gui
-	ShowGUI(guiData);
+	return(guiData);
 }
 
+// returns analysis of a project
 public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
 
 	// copy input AST
@@ -151,7 +164,7 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 	return workset;
 }
 
-
+// creates a report
 public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMoment, bool noTest)
 {
 	list[str] totalReport = [];
