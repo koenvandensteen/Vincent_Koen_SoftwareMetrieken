@@ -7,6 +7,7 @@ import List;
 import Set;
 import Map;
 import IO;
+import util::Math;
 import Helpers::DataContainers;
 import Agregation::SIGRating;
 
@@ -27,8 +28,8 @@ Figure DetailText()
 	{
 		output = "<HooveredItem.abj.objName> has the following metrics:\n";
 		output += "Total lines of code = <HooveredItem.globalVars.lineCount> ";
-		output += "Duplication percentage = <HooveredItem.globalVars.dupPercent> ";
-		output += "Test coverage = <HooveredItem.globalVars.testPercent>\n";
+		output += "Duplication percentage = <round(HooveredItem.globalVars.dupPercent*100.0,0.01)>% ";
+		output += "Test coverage = <round(HooveredItem.globalVars.testPercent*100.0,0.01)>%\n";
 		output += "Sig metrics: unit size: <transFormSIG(HooveredItem.rating.uLoc)> unit complexity: <transFormSIG(HooveredItem.rating.uComp)> Test coverage: <transFormSIG(HooveredItem.rating.uTest)> Duplication: <transFormSIG(HooveredItem.rating.uDup)>";
 
 		return box(text(output),vshrink(0.1));
@@ -171,6 +172,7 @@ Figure RenderTreeMap()
 			if(butnr==1)
 			{
 				Navigationquee += thisObj;
+				ObjectHighlighted = false;
 				RepaintGUI();
 			}
 	

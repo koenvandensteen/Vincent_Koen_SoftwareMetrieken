@@ -256,7 +256,7 @@ private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[rea
 	// during testing a bug became clear when a package is nested in another package
 	// until we arive at the point to fix this we ignor the problem bij returning zero values
 	if(tupSize == 0)
-		return <-1.0, -1.0, -1>;
+		return <0.0, 0.0, 1>;
 	
 	
 	return <dup/tupSize, cov/tupSize, lines>;

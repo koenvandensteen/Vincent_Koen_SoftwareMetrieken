@@ -26,25 +26,40 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 	map[list[str],list[tuple[loc location, int index]]] blockHashesFiltered;
 	map[loc, list[int]] locIndexMap;
 	map[loc, int] dupLoc;
-	list[loc] smallMethods;
+	list[loc] allMethods;
 
 	// get hashes of all strings with their locations
-	<blockHashes, smallMethods> = MapCodeOnDuplicationAST(decls);
+	<blockHashes, allMethods> = MapCodeOnDuplicationAST(decls);
 	
-	// filter non duplicated entries - not done at the moment, could lead to speed increases?
-	//blockHashes = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
+	// filter non duplicated entries for duplication calculation
+	blockHashesFiltered = (a:blockHashes[a] | a <- domain(blockHashes), size(blockHashes[a])>1);
 
 	// get a map of indices of duplicated blocks for each loc
-	locIndexMap = getLocIndex(blockHashes);
+	locIndexMap = getLocIndex(blockHashesFiltered);	
 	
 	// sort indices in new map in asc order
 	locIndexMap = sortIndex(locIndexMap);
 	
-	// get lines of code (per loc)
+	// get lines of duplicated code (per loc)
 	dupLoc = getLocs(locIndexMap);
 
-	 // combine with list of small, unanalysed methods
-	return addSmallMethods(dupLoc, smallMethods);
+	/*
+	// debug
+	temp = addNullMethods(dupLoc, allMethods);
+	for(i <- domain(locIndexMap)){
+		println("<i> has <locIndexMap[i]>");
+		println();
+		println();
+	}
+	
+	1/0;
+	
+	println(size(temp));
+	println(size(dupLoc));
+	*/
+
+	 // return after completing the list with unanalyzed methods
+	return addNullMethods(dupLoc, allMethods);
 
 }
 
@@ -53,7 +68,7 @@ private tuple[map[list[str], list[tuple[loc, int]]], list[loc]] MapCodeOnDuplica
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
 	map[loc, list[str]] strMap = ();
-	list[loc] unused = [];
+	list[loc] locationList = [];
 
 	for(file <- decls){
 		
@@ -86,13 +101,11 @@ private tuple[map[list[str], list[tuple[loc, int]]], list[loc]] MapCodeOnDuplica
 						codeMap[fileLines]=[<i.location,j>];							
 				}
 			}
-			else{
-				unused += i.location;
-			}
+			locationList += i.location;
 		}	
 	}
 	
-	return <codeMap, unused>;	
+	return <codeMap, locationList>;	
 }
 
 // this function basically inverts a map of strings (as keys) with locations+indices (as values) in order to get a list of indices per location
@@ -166,14 +179,14 @@ private map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
 	return (a:sort(mapIn[a]) | a <- domain(mapIn));	
 }
 
-// adds "small" methods to map with "-1" as duplication count. Indicating these have not been tested
-private map[loc, int] addSmallMethods(map[loc, int] mapIn, list[loc] smallMethods){
+// adds "small" methods and other missing functions to map. We give these methods the maximum rating, while this is not correct (they might be duplicated as well) they are not detectable because of our selected granularity, thus they should not be flagged as bad either.
+private map[loc, int] addNullMethods(map[loc, int] mapIn, list[loc] allMethods){
 
 	retVal = mapIn;
 
-	for(i <- smallMethods){
-		// -3 means not analyzed
-		retVal += (i:-3);
+	for(i <- allMethods){
+		if(!(i in mapIn))
+			retVal += (i:0);
 	}
 	
 	return retVal;
