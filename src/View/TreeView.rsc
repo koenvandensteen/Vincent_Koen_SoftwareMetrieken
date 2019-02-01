@@ -66,13 +66,13 @@ Figure TitleBar()
 private Figure RatingSelection(){
   str state = "Overall";
   return vcat(
-				[ choice(["Overall","Lines of code","Unit size","Unit complexity","Duplication","Test coverage"], 
+				[ choice(	["Overall","Lines of code","Unit size","Unit complexity","Duplication","Test coverage"], 
 				void(str s){ 
 					state = s; // from example
 					programConf.currentMetric = s;
 					RepaintGUI();
-				})//,
-				//text(str(){return "Currently displaying: " + state ;}, left())
+				}),
+				box(text(str(){return "Selected: " + programConf.currentMetric ;},fontSize(10)),vshrink(0.2))
 			],hshrink(0.20));
 }
 
@@ -97,8 +97,8 @@ Figure ConfigControls(){
 	//location for export
 	loc exloc = (|project://SoftwareEvolution/renders/|+programConf.currentProject)+(Navigationquee[size(Navigationquee)-1].abj.objName + ".png");
 
-	Color =  checkbox("Color blind mode",void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
-	NoTest =  checkbox("Ignore junit test",void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
+	Color =  checkbox("Color blind mode",programConf[0],void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
+	NoTest =  checkbox("Ignore junit test",programConf[1],void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	About = button("Toggle about", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
 	
