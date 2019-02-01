@@ -203,7 +203,7 @@ private Color(num) GetColorScale()
 	ratings = [-3, -2, -1, 0, 1, 2];
 		
 	if(!programConf.colorBlind){
-		return cscale = colorScale(ratings, color("red", 0.8),color("green"));
+		return cscale = colorScale(ratings, color("red"),color("lime"));
 	}
 	else{
 		return cscale = colorScale(ratings, color("black"),color("white"));
