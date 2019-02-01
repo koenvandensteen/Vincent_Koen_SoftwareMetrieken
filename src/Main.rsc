@@ -55,9 +55,13 @@ public void RunVisualisations(int i){
 		println("******* START ANALYZE JabberPoint *********");
 		VisualizeProject(|project://Jabberpoint|,"Jabberpoint");
 	}
-	if(i == 2 || i == 3){
+	if(i == 2 || i == 3 || i == 4){
 		println("******* START ANALYZE smallsql *********");
 		VisualizeProject(|project://smallsql|,"smallsql");
+	}
+	if(i == 4 || i == 5){
+		println("******* START ANALYZE JabberPoint *********");
+		VisualizeProject(|project://JabberPoint|,"Jabberpoint");
 	}
 }
 
@@ -65,6 +69,9 @@ public void VisualizeProject(loc locProject, str projectName){
 	
 	Workset fullProjectResults;
 	Workset noTestResults;
+	
+	println("make this map at a higher level, to stack all projects!");
+	map[tuple[str name, bool junit] key, BrowsableMap mapData] guiData = ();
 
 	// start timer
 	startMoment = now();	
@@ -72,35 +79,31 @@ public void VisualizeProject(loc locProject, str projectName){
 	M3 m3Project = createM3FromEclipseProject(locProject);
 	set[loc] javaFiles = getFilesJava(locProject);
 	set[Declaration] ASTDeclarations = createAstsFromFiles(javaFiles, false); 
-
-	// analyze full project	
-	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, false);
-	
-	// end timer
-	endMoment = now();
-	
-
-	// analyze project without testcode
-	println("line below can also be analysed! here we ignore the test code in our metrics");
-	//noTestResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, true);
-
+	// get common file path
 	str commonPath = getCommonPath(javaFiles);
-	
+
+	// analyze full project, including junit
+	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, false);	
+	// end timer for analasys
+	endMoment = now();
+	// get data in tree map format
 	BrowsableMap endResult = aggregateChildren(<locProject + commonPath,<projectName ,"project">>, ASTDeclarations, fullProjectResults);
+	// add map to results
+	guiData += (<projectName, false>: endResult);
+	// print out the report
+	CreateReport(endResult, startMoment, endMoment, false);
 	
-	//visitTree(ASTDeclarations, fullProjectResults);
-	//getOveralRatings(fullProjectResults);
+	// analyze full project, excluding junit
+	fullProjectResults = AnalyzeProjectV2(javaFiles, ASTDeclarations, true);	
+	// get data in tree map format
+	endResult = aggregateChildren(<locProject + commonPath,<projectName ,"project">>, ASTDeclarations, fullProjectResults);
+	// add map to results
+	guiData += (<projectName, false>: endResult);
+	// print out the report
+	CreateReport(endResult, startMoment, endMoment, true);
 	
-	//createBrowsableMap(fullProjectResults);
-	//getOveralRatings(fullProjectResults);
-	
-	//println("endResult: <endResult>");
-	//println("we just got the results with tests included and without!");
-	
-	// print out the end results
-	CreateReport(endResult, startMoment, endMoment);
 	// open gui
-	ShowGUI(endResult);
+	ShowGUI(guiData);
 }
 
 public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
@@ -149,7 +152,7 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 }
 
 
-public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMoment)
+public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMoment, bool noTest)
 {
 	list[str] totalReport = [];
 	
@@ -228,7 +231,14 @@ public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMo
 	totalReport+=PrintAndReturnString("**** analys ended at: <now()> and took <executionDuration.minutes> minutes <executionDuration.seconds> seconds <executionDuration.milliseconds> milliseconds \n\n\n\n\n");
 			
 	loc writeDestination = |project://SoftwareEvolution/|;
-	writeDestination.uri += "/<proj.abj.objName>_metrics.txt";
+	
+	if(noTest){
+		writeDestination.uri += "/<proj.abj.objName>_metrics_no_Junit.txt";
+	}
+	else{
+		writeDestination.uri += "/<proj.abj.objName>_metrics.txt";
+	}
+		
 	println(writeDestination.uri);
 	writeFile(writeDestination, totalReport);
 }
