@@ -111,7 +111,7 @@ private map[tuple[str name, bool junit] key, BrowsableMap mapData] createProject
 	// get data in tree map format
 	endResult = aggregateChildren(<locProject + commonPath,<projectName ,"project">>, ASTDeclarations, fullProjectResults);
 	// add map to results
-	guiData += (<projectName, false>: endResult);
+	guiData += (<projectName, true>: endResult);
 	// print out the report
 	CreateReport(endResult, startMoment, endMoment, true);
 	
