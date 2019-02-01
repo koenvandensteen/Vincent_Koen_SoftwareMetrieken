@@ -30,8 +30,7 @@ Figure DetailText()
 		output += "Duplication percentage = <HooveredItem.globalVars.dupPercent> ";
 		output += "Test coverage = <HooveredItem.globalVars.testPercent>\n";
 		output += "Sig metrics: unit size: <transFormSIG(HooveredItem.rating.uLoc)> unit complexity: <transFormSIG(HooveredItem.rating.uComp)> Test coverage: <transFormSIG(HooveredItem.rating.uTest)> Duplication: <transFormSIG(HooveredItem.rating.uDup)>";
-	//alias SIGRating = tuple[int uLoc, int uComp, int uDup, int uTest];
-	//alias GlobalVars =  tuple[real dupPercent, real testPercent, int lineCount];
+
 		return box(text(output),vshrink(0.1));
 	}
 	else if(!(programConf.aboutBox)){
@@ -201,10 +200,10 @@ private void setInputDataset(str name, bool noTest){
 // gets a color scale based on the setting colorblind
 private Color(num) GetColorScale()
 {
-	ratings = [-2, -1, 0, 1, 2];
+	ratings = [-3, -2, -1, 0, 1, 2];
 		
 	if(!programConf.colorBlind){
-		return cscale = colorScale(ratings, color("red"),color("green"));
+		return cscale = colorScale(ratings, color("red", 0.8),color("green"));
 	}
 	else{
 		return cscale = colorScale(ratings, color("black"),color("white"));
