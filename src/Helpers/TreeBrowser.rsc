@@ -245,21 +245,22 @@ private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[rea
 	int lines = 0;
 	
 	for(i <- valIn){
-		dup += i.DupIn;
-		cov += i.CovIn;
+		dup += i.DupIn*i.LinesIn;
+		cov += i.CovIn*i.LinesIn;
 		lines += i.LinesIn;
 	}
 	
-	tupSize = size(valIn);
 	
+	tupSize = size(valIn);
+
 	
 	// during testing a bug became clear when a package is nested in another package
 	// until we arive at the point to fix this we ignor the problem bij returning zero values
-	if(tupSize == 0)
+	if(tupSize == 0 || lines == 0)
 		return <0.0, 0.0, 1>;
 	
 	
-	return <dup/tupSize, cov/tupSize, lines>;
+	return <dup/lines, cov/lines, lines>;
 }
 
 // overloaded version of previous method for when location is known (more accurate) and the object type is a class (otherwise not all files may be read)
