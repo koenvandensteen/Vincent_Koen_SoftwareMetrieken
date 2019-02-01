@@ -65,13 +65,13 @@ Figure TitleBar()
 private Figure RatingSelection(){
   str state = "Overall";
   return vcat(
-				[ choice(["Overall","Lines of code","Unit size","Unit complexity","Duplication","Test coverage"], 
+				[ choice(	["Overall","Lines of code","Unit size","Unit complexity","Duplication","Test coverage"], 
 				void(str s){ 
 					state = s; // from example
 					programConf.currentMetric = s;
 					RepaintGUI();
-				})//,
-				//text(str(){return "Currently displaying: " + state ;}, left())
+				}),
+				box(text(str(){return "Selected: " + programConf.currentMetric ;},fontSize(10)),vshrink(0.2))
 			],hshrink(0.20));
 }
 
