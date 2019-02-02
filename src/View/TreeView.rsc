@@ -15,7 +15,7 @@ import String;
 /*
 / global vars
 */
-private ProgramConfigs programConf = <false, false, false, "", "">; // program configuration
+private ProgramConfigs programConf = <false, false, false, false, "", "">; // program configuration
 private map[tuple[str name, bool noTest] key, BrowsableMap mapData]  projectMap; // full projects
 private list[str]projectList;
 private [] Navigationquee;
@@ -36,6 +36,7 @@ public void ShowGUI(map[tuple[str name, bool noTest] key, BrowsableMap mapData] 
 	//set starting configuration
 	programConf.colorBlind = false;
 	programConf.noTest = false;
+	programConf.showDetails = false;
 	programConf.aboutBox = false;
 	programConf.currentMetric = "Overall";
 		
@@ -98,10 +99,11 @@ private Figure ConfigControls(){
 
 	Color =  checkbox("Color blind mode",programConf[0],void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	NoTest =  checkbox("Ignore Junit",programConf[1],void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
-	About = button("Info", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
+	Details = button("Details", void(){programConf.showDetails = !programConf.showDetails; println(programConf.showDetails); RepaintGUI();},shadow(true),fillColor("LightGray"));
 	Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
+	About = button("Info", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	
-	return hcat([vcat([Color, NoTest]), Export, About],hshrink(0.5));//,vshrink(0.1),gap(25));
+	return hcat([vcat([Color, NoTest]), Details, Export, About],hshrink(0.5));//,vshrink(0.1),gap(25));
 }
 
 // combine control components in one box
@@ -116,7 +118,7 @@ private Figure ControlPanel(){
 // horizontal bar containing the details for the selected object, or the about box
 private Figure DetailText()
 {
-	if(/*ObjectHighlighted && */!(programConf.aboutBox))
+	if(programConf.showDetails && !(programConf.aboutBox))
 	{
 		output = "<HooveredItem.abj.objName> has the following metrics:\n";
 		output += "Total lines of code = <HooveredItem.globalVars.lineCount> ";
@@ -126,15 +128,15 @@ private Figure DetailText()
 
 		return box(text(output),vshrink(0.1));
 	}
-	/*else if(!(programConf.aboutBox)){
+	else if(!(programConf.aboutBox)){
 		return box(text("No details to be shown"),vshrink(0.1));
-	}*/
+	}
 	else{
 		output = "LMB: go into, RMB: show details\n";
 		output += "Lists: The left list allows the user to select the metric he wishes to display, the list to the right selects the project.\n";
 		output += "Checkboxes: \"Color blind mode\" will display all results in grayscale, ";
 		output += "\"Ignore Junit\" will allow the user to not incorporate those results in the test. ";
-		output += "Buttons: \"Export view\" will create a .png of the current view, \"Info\" shows this box! \nCreated by KVDS and VB";
+		output += "Buttons: \"Export view\" will create a .png of the current view, \"Details\" toggles detailed view, \"Info\" shows this box! \nCreated by KVDS and VB";
 		return box(text(output),fontSize(10),vshrink(0.1));
 	}		
 }
@@ -186,6 +188,8 @@ private Figure RenderTreeMap()
 				{				
 					HooveredItem = thisObj;
 					ObjectHighlighted = true;
+					if(!programConf.showDetails)
+						programConf.showDetails = true;
 					RepaintGUI();
 				}						
 			return true;
