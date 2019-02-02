@@ -99,7 +99,7 @@ private Figure ConfigControls(){
 
 	Color =  checkbox("Color blind mode",programConf[0],void(bool s){programConf.colorBlind = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	NoTest =  checkbox("Ignore Junit",programConf[1],void(bool s){programConf.noTest = s; RepaintGUI();},shadow(true),fillColor("LightGray"));
-	Details = button("Details", void(){programConf.showDetails = !programConf.showDetails; println(programConf.showDetails); RepaintGUI();},shadow(true),fillColor("LightGray"));
+	Details = button("Details", void(){programConf.showDetails = !programConf.showDetails; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	Export = button("Export view", void(){renderSave(vcat([DetailText(),TitleBar(),RenderTreeMap()]),1920,1080,exloc);},shadow(true),fillColor("LightGray"));
 	About = button("Info", void(){programConf.aboutBox = !programConf.aboutBox; RepaintGUI();},shadow(true),fillColor("LightGray"));
 	
