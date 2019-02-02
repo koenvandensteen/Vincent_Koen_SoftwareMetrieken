@@ -25,7 +25,7 @@ public tuple[real, real] processUnitTestMap(map [loc, int] tstCount, set[Declara
 	
 	tuple[set[Declaration] pureDeclarations, map[loc, str] projectMethods, int assertCount, list[str] tM, map[loc, str] tM2] helper = duplicateHelper(ASTDeclarations);
 
-	// tstCount returns test classes with "-1" as value, we do not wish to count these so filter those out
+	// tstCount can contain test classes with "-1" as value, we do not wish to count these so filter those out
 	tstCountFilt = (a:tstCount[a] | a <- domain(tstCount), tstCount[a] >= 0); 
 	// get filtered cyclicComplexity
 	complexity = getRangeSum(AnalyzeUnitComplexity(helper.pureDeclarations));
