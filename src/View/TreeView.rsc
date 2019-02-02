@@ -178,7 +178,7 @@ private Figure RenderTreeMap()
 		// create figure list
 		figureList+=box(text(thisObj.abj.objName),fillColor(cscale(thisObjScore)),area(thisObj.globalVars.lineCount),	
 			onMouseDown(bool (int butnr, map[KeyModifier,bool] modifiers) {		
-				if(butnr==1)
+				if(butnr==1 && thisObj.abj.objType != "method")
 				{
 					Navigationquee += thisObj;
 					ObjectHighlighted = false;
