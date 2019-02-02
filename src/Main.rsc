@@ -44,7 +44,7 @@ public void TestVisualisations(int i){
 	
 	map[tuple[str name, bool junit] key, BrowsableMap mapData] allGuiData = ();
 
-	if(i == 1){
+	if(i == 1 || i == 4){
 		println("******* START ANALYZE JabberPoint *********");
 		allGuiData += createProjectVisualisations(|project://Jabberpoint|,"Jabberpoint");
 	}
@@ -54,7 +54,7 @@ public void TestVisualisations(int i){
 	}
 	if(i == 3 || i == 4){
 		println("******* START ANALYZE JabberPoint *********");
-		allGuiData += createProjectVisualisations(|project://JabberPoint|,"Jabberpoint");
+		allGuiData += createProjectVisualisations(|project://hsqldb|,"hsqldb");
 	}
 	
 	println(domain(allGuiData));
