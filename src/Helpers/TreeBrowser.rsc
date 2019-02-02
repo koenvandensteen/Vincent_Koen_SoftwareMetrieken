@@ -10,9 +10,9 @@ import Helpers::DataContainers;
 import Helpers::HelperFunctions;
 import Agregation::SIGRating;
 
+// recursively visits a tree map
 public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData] root, set[Declaration] AST, Workset workset){
 	
-	list[SIGRating] retVal = [];
 	list[SIGRating] ratingList = [];
 	list[GlobalVars] globalList = [];
 	map[tuple[loc, str], BrowsableMap] branches = ();
@@ -40,8 +40,6 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 		
 		projectTree = browsableMap(root.location, root.objData, currentSig, currentGlobal, ());
 		
-		//debug	
-		//println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
 		return projectTree;
 	}
 
@@ -57,18 +55,10 @@ public BrowsableMap aggregateChildren(tuple[loc location, AnalyzedObject objData
 	currentSig = aggregateSigList(ratingList, globalList);
 	currentGlobal = getNewGlobalVars(globalList, root.location, root.objData.objType);
 	
-	//debug
-	//if(root.objData.objType == "class")
-	//if(root.objData.objType == "package")
-	//if(root.objData.objType == "project")
-	//if(root.objData.objType == "project" || root.objData.objType == "package")
-	//	println("<root.location>, <root.objData>, <currentSig>, <currentGlobal>");
-	
 	return browsableMap(root.location, root.objData, currentSig, currentGlobal, branches);
 }
 
 // below class gets the correct type of children. Unfortunately at the moment the entire AST is searched over and over
-// to increase efficiency the AST can be cut down to the relevant part only, 
 // previsions are made for (an AST is returned however at the moment this is the full AST) this and work on this field is a next improvement
 private tuple[map[loc, AnalyzedObject], set[Declaration]] getChildren(loc current, str inType, set[Declaration] AST){
 
@@ -155,36 +145,17 @@ private SIGRating aggregateSigList(list[SIGRating] ratingList, list[GlobalVars] 
 	factionsCompl = getOccurences(ratingList, 1);
 	percentageDup = getNewGlobalVars(globalList).Dup;
 	percentageTest = (getNewGlobalVars(globalList).Cov);
-
-	
-	// for each metric, get the best current rating as the new rating cannot be higher than this
-	//maxRatings = getMaxSig(ratingList);
 	
 	// next rating for size needs factions of mid (0), high(-1) and extreme(-2)
 	int nextLocRating = GetUnitSizeRating(factionsLoc[0], factionsLoc[-1], factionsLoc[-2]);
-	//int nextLocRating = max(GetUnitSizeRating(factionsLoc[0], factionsLoc[-1], factionsLoc[-2]),maxRatings.uLoc);
 	// next rating for complexity needs factions of mid (0), high(-1) and extreme(-2)
 	int nextCompRating = GetUnitComplexityRating(factionsCompl[0], factionsCompl[-1], factionsCompl[-2]);
-	//int nextCompRating = max(GetUnitComplexityRating(factionsCompl[0], factionsCompl[-1], factionsCompl[-2]),maxRatings.uDup);
 	// next rating for duplication needs a percentage of duplication, we achieve this by averaging the list of earlier percentages
 	int nextDupRating = GetDuplicationRating(percentageDup);
-	//int nextDupRating = max(GetDuplicationRating(percentageDup),maxRatings.uDup);
 	// next rating for test coverage needs a percentage of coverage, we achieve this by averaging the list of earlier percentages
 	int nextTestRating = GetTestRating(percentageTest);
-	//println("test rating <nextTestRating> was generated from (average <sum(globalList.testPercent)/size(globalList.testPercent)>)<globalList.testPercent>");
-	//int nextTestRating = max(GetTestRating(percentageTest),maxRatings.uTest);
 
 	return <nextLocRating, nextCompRating, nextDupRating, nextTestRating>;
-}
-
-// gets the maximum ratings for each metric in a SIGRating object
-private SIGRating getMaxSig(list[SIGRating] ratingList){
-	maxLoc = max(ratingList.uLoc);
-	maxComp = max(ratingList.uComp);
-	maxDup = max(ratingList.uDup);
-	maxTest = max(ratingList.uTest);
-	
-	return <maxLoc, maxComp, maxDup, maxTest>;
 }
 
 // calculates how often a specific value for a metric occurs in a list of ratings relative to the total amount of ratings
@@ -205,8 +176,7 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 	int mapSize = size(ratingList);
 	
 	
-	// during testing a bug became clear when a package is nested in another package
-	// until we arive at the point to fix this we ignor the problem bij returning an empty map
+	// for some objects, e.g. abstract classes, an empty list is passed
 	if(mapSize == 0){
 		retVal += (2:0.0);
 		retVal += (1:0.0);
@@ -218,7 +188,6 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 
 	}
 	
-
 	// count occurences
 	for(i <- ratingList){
 		resMap[i[target]] += 1; 
@@ -228,10 +197,7 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 	for(i <- domain(resMap)){
 		retVal += (i:toReal(resMap[i])/mapSize);
 	}
-	
-	//debug
-	//println(retVal);
-	
+
 	return(retVal);
 
 }
@@ -239,7 +205,6 @@ private map[int, real] getOccurences(list[SIGRating] ratingList, int target){
 // calculates the new duplication count, test coverage and global line count based on a list of these values for smaller code units
 // (e.g. when this is calculated for a class, all methods are taken into account)
 private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[real DupIn, real CovIn, int LinesIn]] valIn){
-	int tupSize = 0;
 	real dup = 0.0;
 	real cov = 0.0;
 	int lines = 0;
@@ -250,13 +215,8 @@ private tuple[real Dup, real Cov, int codeLines] getNewGlobalVars(list[tuple[rea
 		lines += i.LinesIn;
 	}
 	
-	
-	tupSize = size(valIn);
-
-	
-	// during testing a bug became clear when a package is nested in another package
-	// until we arive at the point to fix this we ignor the problem bij returning zero values
-	if(tupSize == 0 || lines == 0)
+	// prevent devide-by-zero errors, these happen in some abstract classes
+	if(size(valIn) == 0 || lines == 0)
 		return <0.0, 0.0, 1>;
 	
 	

@@ -43,27 +43,12 @@ public map[loc, int]  AnalyzeDuplicationAST(set[Declaration] decls){
 	// get lines of duplicated code (per loc)
 	dupLoc = getLocs(locIndexMap);
 
-	/*
-	// debug
-	temp = addNullMethods(dupLoc, allMethods);
-	for(i <- domain(locIndexMap)){
-		println("<i> has <locIndexMap[i]>");
-		println();
-		println();
-	}
-	
-	1/0;
-	
-	println(size(temp));
-	println(size(dupLoc));
-	*/
-
 	 // return after completing the list with unanalyzed methods
 	return addNullMethods(dupLoc, allMethods);
 
 }
 
-// this method gets a map of strings combined with their occurences (as location and index in that location) and a list of unprocessed locs (due to small sizes)
+// Gets a map of strings combined with their occurences (as location and index in that location) and a list of visited locs
 private tuple[map[list[str], list[tuple[loc, int]]], list[loc]] MapCodeOnDuplicationAST(set[Declaration] decls){
 
 	map[list[str], list[tuple[loc, int]]] codeMap = ();
@@ -162,16 +147,13 @@ private map[loc, int] getLocs(map[loc, list[int]] mapIn){
 
 //estimate based on two indices how many lines are overlapped (e.g. if i1 = 1 and i2 = 2 there are 2 unique lines (first of i1 and last of i2) and 5 overlapping lines, the total would be 7)
 private int quantifyOverlap(int a, int b){
-	i = max(a,b);
-	j = min(a,b);
-	
-	delta = i - j;
+	delta = max(a,b) - min(a,b);
 	overlap = blockSize - delta;
 
 	if(overlap <= 0)
-		return blockSize; //2* blocksize if calculating for only these 2!
+		return blockSize; 
 	
-	return blockSize - overlap; //(overlap+2*delta);
+	return blockSize - overlap;
 }
 
 // sorts indices in ascending order in order to find the overlapping parts in later phases
@@ -181,13 +163,10 @@ private map[loc, list[int]] sortIndex(map[loc, list[int]] mapIn){
 
 // adds "small" methods and other missing functions to map. We give these methods the maximum rating, while this is not correct (they might be duplicated as well) they are not detectable because of our selected granularity, thus they should not be flagged as bad either.
 private map[loc, int] addNullMethods(map[loc, int] mapIn, list[loc] allMethods){
-
 	retVal = mapIn;
-
 	for(i <- allMethods){
 		if(!(i in mapIn))
 			retVal += (i:0);
 	}
-	
 	return retVal;
 }

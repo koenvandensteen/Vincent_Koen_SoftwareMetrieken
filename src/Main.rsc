@@ -117,7 +117,7 @@ private map[tuple[str name, bool junit] key, BrowsableMap mapData] createProject
 }
 
 // returns analysis of a project
-public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
+private Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarations, bool noTest){	
 
 	// copy input AST
 	set[Declaration] origDeclarations = ASTDeclarations; // we make this copy because for some functionality we still need the filtered data
@@ -163,7 +163,7 @@ public Workset AnalyzeProjectV2(set[loc] javaFiles, set[Declaration] ASTDeclarat
 }
 
 // creates a report
-public void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMoment, bool noTest)
+private void CreateReport(BrowsableMap proj, datetime startMoment, datetime endMoment, bool noTest)
 {
 	list[str] totalReport = [];
 	
